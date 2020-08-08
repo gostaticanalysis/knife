@@ -17,3 +17,13 @@ Print
 Printf
 Println
 ```
+
+```sh
+$ tlist -f "{{range exported .Types}}{{.Name}}{{br}}{{end}}" fmt
+Formatter
+GoStringer
+ScanState
+Scanner
+State
+Stringer
+```
