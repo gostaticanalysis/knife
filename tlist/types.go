@@ -7,7 +7,7 @@ import (
 
 func under(t types.Type) types.Type {
 	if named, _ := t.(*types.Named); named != nil {
-		return under(named)
+		return under(named.Underlying())
 	}
 	return t
 }
