@@ -3,9 +3,18 @@ package tlist
 import (
 	"fmt"
 	"go/constant"
+	"go/token"
 	"go/types"
 	"reflect"
 )
+
+func Position(fset *token.FileSet, v interface{}) token.Position {
+	n, ok := v.(interface{ Pos() token.Pos })
+	if ok && fset != nil {
+		return fset.Position(n.Pos())
+	}
+	return token.Position{}
+}
 
 func Exported(list interface{}) interface{} {
 	v := reflect.ValueOf(list)
@@ -86,6 +95,10 @@ func NewField(s *Struct, v *types.Var, tag string) *Field {
 	return &nf
 }
 
+func (f *Field) Pos() token.Pos {
+	return f.TypesVar.Pos()
+}
+
 func (f *Field) String() string {
 	return f.TypesVar.String()
 }
@@ -122,6 +135,10 @@ func NewVar(v *types.Var) *Var {
 	return &nv
 }
 
+func (v *Var) Pos() token.Pos {
+	return v.TypesVar.Pos()
+}
+
 func (v *Var) String() string {
 	return v.TypesVar.String()
 }
@@ -135,6 +152,10 @@ type Func struct {
 }
 
 var _ fmt.Stringer = (*Func)(nil)
+
+func (f *Func) Pos() token.Pos {
+	return f.TypesFunc.Pos()
+}
 
 func (f *Func) String() string {
 	return f.TypesFunc.String()
@@ -173,6 +194,10 @@ type TypeName struct {
 
 var _ fmt.Stringer = (*TypeName)(nil)
 
+func (tn *TypeName) Pos() token.Pos {
+	return tn.TypesTypeName.Pos()
+}
+
 func (tn *TypeName) String() string {
 	return tn.TypesTypeName.String()
 }
@@ -210,6 +235,10 @@ type Const struct {
 }
 
 var _ fmt.Stringer = (*Const)(nil)
+
+func (c *Const) Pos() token.Pos {
+	return c.TypesConst.Pos()
+}
 
 func (c *Const) String() string {
 	return c.TypesConst.String()

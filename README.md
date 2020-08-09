@@ -11,12 +11,16 @@ $ go get -u github.com/tenntenn/gostaticanalysis/tlist
 
 ## How to use
 
+### List `fmt` package's functions which name begins `Print`
+
 ```sh
 $ tlist -f "{{range exported .Funcs}}{{.Name}}{{br}}{{end}}" fmt | grep Print
 Print
 Printf
 Println
 ```
+
+### List `fmt` package's exported types
 
 ```sh
 $ tlist -f "{{range exported .Types}}{{.Name}}{{br}}{{end}}" fmt
@@ -26,4 +30,12 @@ ScanState
 Scanner
 State
 Stringer
+```
+
+### List `net/http` package's functions which first parameter is context.Context
+
+```sh
+$ tlist -f '{{range exported .Funcs}}{{.Name}} \
+{{with .Signature.Params}}{{index . 0}}{{end}}{{br}}{{end}}' "net/http" | grep context.Context
+NewRequestWithContext var ctx context.Context
 ```

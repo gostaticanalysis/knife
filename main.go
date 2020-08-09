@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"go/token"
 	"os"
 	"text/template"
 
@@ -10,11 +11,13 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
+var (
+	flagFormat string
+)
+
 func init() {
-	var flagFormat string
 	flag.StringVar(&flagFormat, "f", "{{.}}", "output format")
 	flag.Parse()
-	template.Must(tlist.Template.Parse(flagFormat))
 }
 
 func main() {
@@ -29,8 +32,18 @@ func main() {
 	}
 
 	for _, pkg := range pkgs {
+		pkg := pkg
+		tmpl, err := tlist.Template.Funcs(template.FuncMap{
+			"pos": func(v interface{}) token.Position {
+				return tlist.Position(pkg.Fset, v)
+			},
+		}).Parse(flagFormat)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "template parse error: %v\n", err)
+			os.Exit(1)
+		}
 		p := tlist.NewPackage(pkg.Types)
-		if err := tlist.Template.Execute(os.Stdout, p); err != nil {
+		if err := tmpl.Execute(os.Stdout, p); err != nil {
 			fmt.Fprintf(os.Stderr, "template execute: %v\n", err)
 			os.Exit(1)
 		}
