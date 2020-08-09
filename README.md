@@ -1,12 +1,12 @@
-# tlist [![PkgGoDev](https://pkg.go.dev/badge/github.com/gostaticanalysis/tlist)](https://pkg.go.dev/github.com/gostaticanalysis/tlist)
+# knife [![PkgGoDev](https://pkg.go.dev/badge/github.com/gostaticanalysis/knife)](https://pkg.go.dev/github.com/gostaticanalysis/knife)
 
-`tlist` lists type information of the named packages, one per line.
-`tlist` has `-f` option likes `go list` command.
+`knife` lists type information of the named packages, one per line.
+`knife` has `-f` option likes `go list` command.
 
 ## Install
 
 ```sh
-$ go get -u github.com/tenntenn/gostaticanalysis/tlist
+$ go get -u github.com/tenntenn/gostaticanalysis/knife
 ```
 
 ## How to use
@@ -14,7 +14,7 @@ $ go get -u github.com/tenntenn/gostaticanalysis/tlist
 ### List `fmt` package's functions which name begins `Print`
 
 ```sh
-$ tlist -f "{{range exported .Funcs}}{{.Name}}{{br}}{{end}}" fmt | grep Print
+$ knife -f "{{range exported .Funcs}}{{.Name}}{{br}}{{end}}" fmt | grep Print
 Print
 Printf
 Println
@@ -23,7 +23,7 @@ Println
 ### List `fmt` package's exported types
 
 ```sh
-$ tlist -f "{{range exported .Types}}{{.Name}}{{br}}{{end}}" fmt
+$ knife -f "{{range exported .Types}}{{.Name}}{{br}}{{end}}" fmt
 Formatter
 GoStringer
 ScanState
@@ -35,7 +35,7 @@ Stringer
 ### List `net/http` package's functions which first parameter is context.Context
 
 ```sh
-$ tlist -f '{{range exported .Funcs}}{{.Name}} \
+$ knife -f '{{range exported .Funcs}}{{.Name}} \
 {{with .Signature.Params}}{{index . 0}}{{end}}{{br}}{{end}}' "net/http" | grep context.Context
 NewRequestWithContext var ctx context.Context
 ```

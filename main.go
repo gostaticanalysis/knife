@@ -7,7 +7,7 @@ import (
 	"os"
 	"text/template"
 
-	"github.com/gostaticanalysis/tlist/tlist"
+	"github.com/gostaticanalysis/knife/knife"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -33,16 +33,16 @@ func main() {
 
 	for _, pkg := range pkgs {
 		pkg := pkg
-		tmpl, err := tlist.Template.Funcs(template.FuncMap{
+		tmpl, err := knife.Template.Funcs(template.FuncMap{
 			"pos": func(v interface{}) token.Position {
-				return tlist.Position(pkg.Fset, v)
+				return knife.Position(pkg.Fset, v)
 			},
 		}).Parse(flagFormat)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "template parse error: %v\n", err)
 			os.Exit(1)
 		}
-		p := tlist.NewPackage(pkg.Types)
+		p := knife.NewPackage(pkg.Types)
 		if err := tmpl.Execute(os.Stdout, p); err != nil {
 			fmt.Fprintf(os.Stderr, "template execute: %v\n", err)
 			os.Exit(1)
