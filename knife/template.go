@@ -6,7 +6,7 @@ import (
 	"text/template"
 )
 
-var Template = template.New("tlist").Funcs(template.FuncMap{
+var Template = template.New("knife_format").Funcs(template.FuncMap{
 	"br":        fmt.Sprintln,
 	"array":     ToArray,
 	"basic":     ToBasic,
@@ -22,4 +22,5 @@ var Template = template.New("tlist").Funcs(template.FuncMap{
 	"len":       func(v interface{}) int { return reflect.ValueOf(v).Len() },
 	"cap":       func(v interface{}) int { return reflect.ValueOf(v).Cap() },
 	"exported":  Exported,
+	"methods":   Methods,
 })
