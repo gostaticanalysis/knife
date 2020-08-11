@@ -18,7 +18,6 @@ func Methods(v interface{}) map[string]*Func {
 		ms := types.NewMethodSet(t)
 		for i := 0; i < ms.Len(); i++ {
 			m, _ := ms.At(i).Obj().(*types.Func)
-			fmt.Println(m)
 			if m != nil {
 				methods[m.Name()] = NewFunc(m)
 			}
