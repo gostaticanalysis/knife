@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"go/token"
 	"os"
+	"strings"
 	"text/template"
 
+	"github.com/gostaticanalysis/comment"
 	"github.com/gostaticanalysis/knife/knife"
 	"golang.org/x/tools/go/packages"
 )
@@ -33,9 +35,28 @@ func main() {
 
 	for _, pkg := range pkgs {
 		pkg := pkg
+		var cmaps comment.Maps
 		tmpl, err := knife.Template.Funcs(template.FuncMap{
 			"pos": func(v interface{}) token.Position {
 				return knife.Position(pkg.Fset, v)
+			},
+			"doc": func(v interface{}) string {
+				node, ok := v.(interface{ Pos() token.Pos })
+				if !ok {
+					return ""
+				}
+
+				if cmaps == nil {
+					cmaps = comment.New(pkg.Fset, pkg.Syntax)
+				}
+
+				pos := node.Pos()
+				cgs := cmaps.CommentsByPosLine(pkg.Fset, pos)
+				if len(cgs) > 0 {
+					return strings.TrimSpace(cgs[len(cgs)-1].Text())
+				}
+
+				return ""
 			},
 		}).Parse(flagFormat)
 		if err != nil {
