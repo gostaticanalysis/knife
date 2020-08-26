@@ -43,7 +43,7 @@ NewRequestWithContext var ctx context.Context
 ### List type information of an AST node which is selected by a XPath expression
 
 ```sh
-knife -f '{{range .}}{{.Name}}:{{with .Scope}}{{.Names}}{{br}}{{end}}{{end}}' -xpath '//*[@type="FuncDecl"]/Name[starts-with(@Name, "Print")]' fmt
+$ knife -f '{{range .}}{{.Name}}:{{with .Scope}}{{.Names}}{{br}}{{end}}{{end}}' -xpath '//*[@type="FuncDecl"]/Name[starts-with(@Name, "Print")]' fmt
 Printf:[a err format n]
 Print:[a err n]
 Println:[a err n]
