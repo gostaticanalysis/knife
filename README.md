@@ -40,6 +40,33 @@ $ knife -f '{{range exported .Funcs}}{{.Name}} \
 NewRequestWithContext var ctx context.Context
 ```
 
+### List net/http types which implements error interface
+
+```sh
+$ knife -f '{{range exported .Vars}}{{if implements . (typeof "error")}}{{.Name}}{{br}}{{end}}{{end}}' "net/http"
+ErrAbortHandler
+ErrBodyNotAllowed
+ErrBodyReadAfterClose
+ErrContentLength
+ErrHandlerTimeout
+ErrHeaderTooLong
+ErrHijacked
+ErrLineTooLong
+ErrMissingBoundary
+ErrMissingContentLength
+ErrMissingFile
+ErrNoCookie
+ErrNoLocation
+ErrNotMultipart
+ErrNotSupported
+ErrServerClosed
+ErrShortBody
+ErrSkipAltProtocol
+ErrUnexpectedTrailer
+ErrUseLastResponse
+ErrWriteAfterFlush
+```
+
 ### List type information of an AST node which is selected by a XPath expression
 
 ```sh
