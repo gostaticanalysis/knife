@@ -605,6 +605,10 @@ func under(t types.Type) types.Type {
 }
 
 func implements(t interface{}, iface interface{}) bool {
+	if t == nil || iface == nil {
+		return false
+	}
+
 	var (
 		_t     types.Type
 		_iface *types.Interface
@@ -612,25 +616,52 @@ func implements(t interface{}, iface interface{}) bool {
 
 	switch t := t.(type) {
 	case types.Type:
+		if t == nil {
+			return false
+		}
 		_t = t
 	case *Type:
+		if t == nil {
+			return false
+		}
 		_t = t.TypesType
 	case Object:
+		if t == nil {
+			return false
+		}
 		_t = t.TypesObject().Type()
 	case types.Object:
+		if t == nil {
+			return false
+		}
 		_t = t.Type()
 	}
 
 	switch iface := iface.(type) {
 	case *types.Interface:
+		if iface == nil {
+			return false
+		}
 		_iface = iface
 	case types.Type:
+		if iface == nil {
+			return false
+		}
 		_iface, _ = under(iface).(*types.Interface)
 	case *Type:
+		if iface == nil {
+			return false
+		}
 		_iface, _ = under(iface.TypesType).(*types.Interface)
 	case Object:
+		if iface == nil {
+			return false
+		}
 		_iface, _ = under(iface.TypesObject().Type()).(*types.Interface)
 	case types.Object:
+		if iface == nil {
+			return false
+		}
 		_iface, _ = under(iface.Type()).(*types.Interface)
 	}
 
@@ -638,27 +669,55 @@ func implements(t interface{}, iface interface{}) bool {
 }
 
 func identical(t1, t2 interface{}) bool {
-	var _t1, _t2     types.Type
+	if t1 == nil || t2 == nil {
+		return false
+	}
+
+	var _t1, _t2 types.Type
 
 	switch t1 := t1.(type) {
 	case types.Type:
+		if t1 == nil {
+			return false
+		}
 		_t1 = t1
 	case *Type:
+		if t1 == nil {
+			return false
+		}
 		_t1 = t1.TypesType
 	case Object:
+		if t1 == nil {
+			return false
+		}
 		_t1 = t1.TypesObject().Type()
 	case types.Object:
+		if t1 == nil {
+			return false
+		}
 		_t1 = t1.Type()
 	}
 
 	switch t2 := t2.(type) {
 	case types.Type:
+		if t2 == nil {
+			return false
+		}
 		_t2 = t2
 	case *Type:
+		if t2 == nil {
+			return false
+		}
 		_t2 = t2.TypesType
 	case Object:
+		if t2 == nil {
+			return false
+		}
 		_t2 = t2.TypesObject().Type()
 	case types.Object:
+		if t2 == nil {
+			return false
+		}
 		_t2 = t2.Type()
 	}
 

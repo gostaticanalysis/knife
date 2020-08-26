@@ -145,6 +145,5 @@ func typeOf(typesPkg *types.Package, s string) *knife.Type {
 	if obj == nil {
 		return nil
 	}
-
 	return knife.NewType(obj.TypesObject().Type())
 }
