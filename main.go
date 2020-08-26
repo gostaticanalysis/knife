@@ -79,12 +79,7 @@ func main() {
 			for i := range ns {
 				nns[i] = knife.NewASTNode(pkg.TypesInfo, ns[i])
 			}
-
-			if len(ns) == 1 {
-				data = nns[0]
-			} else {
-				data = nns
-			}
+			data = nns
 		} else {
 			data = knife.NewPackage(pkg.Types)
 		}

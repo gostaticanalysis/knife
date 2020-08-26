@@ -94,6 +94,9 @@ func NewASTNode(typesInfo *types.Info, n ast.Node) *ASTNode {
 		if obj != nil {
 			nn.Object = NewObject(obj)
 			nn.Name = obj.Name()
+			if scopeHolder, ok := obj.(interface{ Scope() *types.Scope }); ok {
+				nn.Scope = NewScope(scopeHolder.Scope())
+			}
 		}
 	}
 	if expr, ok := n.(ast.Expr); ok {
