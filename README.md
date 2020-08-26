@@ -67,6 +67,19 @@ ErrUseLastResponse
 ErrWriteAfterFlush
 ```
 
+### List position of fields which type is context.Context
+
+```sh
+$ knife -f '{{range .Types}}{{$t := .}}{{with struct .}}{{range .Fields}}{{if identical . (typeof "context.Context")}}{{$t.Name}} - {{pos .}}{{br}}{{end}}{{end}}{{end}}{{end}}' "net/http"
+Request - /usr/local/go/src/net/http/request.go:319:2
+http2ServeConnOpts - /usr/local/go/src/net/http/h2_bundle.go:3878:2
+http2serverConn - /usr/local/go/src/net/http/h2_bundle.go:4065:2
+http2stream - /usr/local/go/src/net/http/h2_bundle.go:4146:2
+initALPNRequest - /usr/local/go/src/net/http/server.go:3393:2
+timeoutHandler - /usr/local/go/src/net/http/server.go:3241:2
+wantConn - /usr/local/go/src/net/http/transport.go:1162:2
+```
+
 ### List type information of an AST node which is selected by a XPath expression
 
 ```sh

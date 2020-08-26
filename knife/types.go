@@ -203,6 +203,8 @@ func ToStruct(t interface{}) *Struct {
 	switch t := t.(type) {
 	case *Type:
 		return t.Struct()
+	case *TypeName:
+		return t.Type.Struct()
 	case types.Type:
 		return NewType(t).Struct()
 	}
@@ -245,6 +247,8 @@ func ToMap(t interface{}) *Map {
 	switch t := t.(type) {
 	case *Type:
 		return t.Map()
+	case *TypeName:
+		return t.Type.Map()
 	case types.Type:
 		return NewType(t).Map()
 	}
@@ -285,6 +289,8 @@ func ToPointer(t interface{}) *Pointer {
 	switch t := t.(type) {
 	case *Type:
 		return t.Pointer()
+	case *TypeName:
+		return t.Type.Pointer()
 	case types.Type:
 		return NewType(t).Pointer()
 	}
@@ -327,6 +333,8 @@ func ToChan(t interface{}) *Chan {
 	switch t := t.(type) {
 	case *Type:
 		return t.Chan()
+	case *TypeName:
+		return t.Type.Chan()
 	case types.Type:
 		return NewType(t).Chan()
 	}
@@ -372,6 +380,8 @@ func ToBasic(t interface{}) *Basic {
 	switch t := t.(type) {
 	case *Type:
 		return t.Basic()
+	case *TypeName:
+		return t.Type.Basic()
 	case types.Type:
 		return NewType(t).Basic()
 	}
@@ -438,6 +448,8 @@ func ToInterface(t interface{}) *Interface {
 	switch t := t.(type) {
 	case *Type:
 		return t.Interface()
+	case *TypeName:
+		return t.Type.Interface()
 	case types.Type:
 		return NewType(t).Interface()
 	}
@@ -492,6 +504,8 @@ func ToSignature(t interface{}) *Signature {
 	switch t := t.(type) {
 	case *Type:
 		return t.Signature()
+	case *TypeName:
+		return t.Type.Signature()
 	case types.Type:
 		return NewType(t).Signature()
 	}
@@ -542,6 +556,8 @@ func ToNamed(t interface{}) *Named {
 	switch t := t.(type) {
 	case *Type:
 		return t.Named()
+	case *TypeName:
+		return t.Type.Named()
 	case types.Type:
 		return NewType(t).Named()
 	}
