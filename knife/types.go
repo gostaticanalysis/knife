@@ -5,42 +5,6 @@ import (
 	"go/types"
 )
 
-func Methods(v interface{}) map[string]*Func {
-	methods := map[string]*Func{}
-	switch t := v.(type) {
-	case *Type:
-		return Methods(t.TypesType)
-	case *TypeName:
-		return Methods(t.TypesTypeName.Type())
-	case *types.TypeName:
-		return Methods(t.Type())
-	case types.Type:
-		ms := types.NewMethodSet(t)
-		for i := 0; i < ms.Len(); i++ {
-			m, _ := ms.At(i).Obj().(*types.Func)
-			if m != nil {
-				methods[m.Name()] = NewFunc(m)
-			}
-		}
-		if _, isPtr := t.(*types.Pointer); !isPtr {
-			ptrMethods := Methods(types.NewPointer(t))
-			for n, m := range ptrMethods {
-				if _, ok := methods[n]; !ok {
-					methods[n] = m
-				}
-			}
-		}
-	}
-	return methods
-}
-
-func under(t types.Type) types.Type {
-	if named, _ := t.(*types.Named); named != nil {
-		return under(named.Underlying())
-	}
-	return t
-}
-
 type Type struct {
 	TypesType types.Type
 }
@@ -587,3 +551,40 @@ func ToNamed(t interface{}) *Named {
 func (c *Named) String() string {
 	return c.TypesNamed.String()
 }
+
+func Methods(v interface{}) map[string]*Func {
+	methods := map[string]*Func{}
+	switch t := v.(type) {
+	case *Type:
+		return Methods(t.TypesType)
+	case *TypeName:
+		return Methods(t.TypesTypeName.Type())
+	case *types.TypeName:
+		return Methods(t.Type())
+	case types.Type:
+		ms := types.NewMethodSet(t)
+		for i := 0; i < ms.Len(); i++ {
+			m, _ := ms.At(i).Obj().(*types.Func)
+			if m != nil {
+				methods[m.Name()] = NewFunc(m)
+			}
+		}
+		if _, isPtr := t.(*types.Pointer); !isPtr {
+			ptrMethods := Methods(types.NewPointer(t))
+			for n, m := range ptrMethods {
+				if _, ok := methods[n]; !ok {
+					methods[n] = m
+				}
+			}
+		}
+	}
+	return methods
+}
+
+func under(t types.Type) types.Type {
+	if named, _ := t.(*types.Named); named != nil {
+		return under(named.Underlying())
+	}
+	return t
+}
+

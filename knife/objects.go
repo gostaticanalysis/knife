@@ -8,55 +8,24 @@ import (
 	"reflect"
 )
 
-func Position(fset *token.FileSet, v interface{}) token.Position {
-	n, ok := v.(interface{ Pos() token.Pos })
-	if ok && fset != nil {
-		return fset.Position(n.Pos())
-	}
-	return token.Position{}
+type Object interface {
+	TypesObject() types.Object
 }
 
-func Exported(list interface{}) interface{} {
-	v := reflect.ValueOf(list)
-	switch v.Kind() {
-	case reflect.Slice, reflect.Array:
-		return exportedSlice(v)
-	case reflect.Map:
-		return exportedMap(v)
-	}
-	panic("unexpected kind")
-}
-
-func exportedSlice(v reflect.Value) interface{} {
-	result := reflect.MakeSlice(v.Type(), 0, 0)
-	for i := 0; i < v.Len(); i++ {
-		elm := v.Index(i)
-		if isExported(elm) {
-			result = reflect.Append(result, elm)
+func NewObject(o types.Object) Object {
+	switch o := o.(type) {
+	case *types.Var:
+		if !o.IsField() {
+			return NewVar(o)
 		}
+	case *types.Const:
+		return NewConst(o)
+	case *types.Func:
+		return NewFunc(o)
+	case *types.TypeName:
+		return NewTypeName(o)
 	}
-	return result.Interface()
-}
-
-func exportedMap(v reflect.Value) interface{} {
-	result := reflect.MakeMap(v.Type())
-	for _, key := range v.MapKeys() {
-		elm := v.MapIndex(key)
-		if isExported(elm) {
-			result.SetMapIndex(key, elm)
-		}
-	}
-	return result.Interface()
-}
-
-func isExported(v reflect.Value) bool {
-	switch v.Kind() {
-	case reflect.Ptr:
-		return isExported(v.Elem())
-	case reflect.Struct:
-		return v.FieldByName("Exported").Bool()
-	}
-	panic("unexpected kind")
+	return nil
 }
 
 type Field struct {
@@ -70,6 +39,7 @@ type Field struct {
 }
 
 var _ fmt.Stringer = (*Field)(nil)
+var _ Object = (*Field)(nil)
 
 func NewField(s *Struct, v *types.Var, tag string) *Field {
 	if s == nil || v == nil {
@@ -103,6 +73,10 @@ func (f *Field) String() string {
 	return f.TypesVar.String()
 }
 
+func (f *Field) TypesObject() types.Object {
+	return f.TypesVar
+}
+
 type Var struct {
 	TypesVar *types.Var
 	Exported bool
@@ -112,6 +86,7 @@ type Var struct {
 }
 
 var _ fmt.Stringer = (*Var)(nil)
+var _ Object = (*Var)(nil)
 
 func NewVar(v *types.Var) *Var {
 	if v == nil {
@@ -143,6 +118,10 @@ func (v *Var) String() string {
 	return v.TypesVar.String()
 }
 
+func (v *Var) TypesObject() types.Object {
+	return v.TypesVar
+}
+
 type Func struct {
 	TypesFunc *types.Func
 	Name      string
@@ -152,6 +131,7 @@ type Func struct {
 }
 
 var _ fmt.Stringer = (*Func)(nil)
+var _ Object = (*Func)(nil)
 
 func (f *Func) Pos() token.Pos {
 	return f.TypesFunc.Pos()
@@ -159,6 +139,10 @@ func (f *Func) Pos() token.Pos {
 
 func (f *Func) String() string {
 	return f.TypesFunc.String()
+}
+
+func (f *Func) TypesObject() types.Object {
+	return f.TypesFunc
 }
 
 func NewFunc(f *types.Func) *Func {
@@ -193,6 +177,7 @@ type TypeName struct {
 }
 
 var _ fmt.Stringer = (*TypeName)(nil)
+var _ Object = (*TypeName)(nil)
 
 func (tn *TypeName) Pos() token.Pos {
 	return tn.TypesTypeName.Pos()
@@ -200,6 +185,10 @@ func (tn *TypeName) Pos() token.Pos {
 
 func (tn *TypeName) String() string {
 	return tn.TypesTypeName.String()
+}
+
+func (tn *TypeName) TypesObject() types.Object {
+	return tn.TypesTypeName
 }
 
 func NewTypeName(tn *types.TypeName) *TypeName {
@@ -235,6 +224,7 @@ type Const struct {
 }
 
 var _ fmt.Stringer = (*Const)(nil)
+var _ Object = (*Const)(nil)
 
 func (c *Const) Pos() token.Pos {
 	return c.TypesConst.Pos()
@@ -242,6 +232,10 @@ func (c *Const) Pos() token.Pos {
 
 func (c *Const) String() string {
 	return c.TypesConst.String()
+}
+
+func (c *Const) TypesObject() types.Object {
+	return c.TypesConst
 }
 
 func NewConst(c *types.Const) *Const {
@@ -312,3 +306,55 @@ func (c *Const) Uint64Val() uint64 {
 func (c *Const) Val() interface{} {
 	return constant.Val(c.Value)
 }
+
+func Position(fset *token.FileSet, v interface{}) token.Position {
+	n, ok := v.(interface{ Pos() token.Pos })
+	if ok && fset != nil {
+		return fset.Position(n.Pos())
+	}
+	return token.Position{}
+}
+
+func Exported(list interface{}) interface{} {
+	v := reflect.ValueOf(list)
+	switch v.Kind() {
+	case reflect.Slice, reflect.Array:
+		return exportedSlice(v)
+	case reflect.Map:
+		return exportedMap(v)
+	}
+	panic("unexpected kind")
+}
+
+func exportedSlice(v reflect.Value) interface{} {
+	result := reflect.MakeSlice(v.Type(), 0, 0)
+	for i := 0; i < v.Len(); i++ {
+		elm := v.Index(i)
+		if isExported(elm) {
+			result = reflect.Append(result, elm)
+		}
+	}
+	return result.Interface()
+}
+
+func exportedMap(v reflect.Value) interface{} {
+	result := reflect.MakeMap(v.Type())
+	for _, key := range v.MapKeys() {
+		elm := v.MapIndex(key)
+		if isExported(elm) {
+			result.SetMapIndex(key, elm)
+		}
+	}
+	return result.Interface()
+}
+
+func isExported(v reflect.Value) bool {
+	switch v.Kind() {
+	case reflect.Ptr:
+		return isExported(v.Elem())
+	case reflect.Struct:
+		return v.FieldByName("Exported").Bool()
+	}
+	panic("unexpected kind")
+}
+

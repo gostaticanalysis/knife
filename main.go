@@ -8,6 +8,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/gostaticanalysis/astquery"
 	"github.com/gostaticanalysis/comment"
 	"github.com/gostaticanalysis/knife/knife"
 	"golang.org/x/tools/go/packages"
@@ -15,15 +16,17 @@ import (
 
 var (
 	flagFormat string
+	flagXPath  string
 )
 
 func init() {
 	flag.StringVar(&flagFormat, "f", "{{.}}", "output format")
+	flag.StringVar(&flagXPath, "xpath", "", "A XPath expression for an AST node")
 	flag.Parse()
 }
 
 func main() {
-	cfg := &packages.Config{Mode: packages.NeedFiles | packages.NeedSyntax | packages.NeedTypes | packages.NeedDeps}
+	cfg := &packages.Config{Mode: packages.NeedFiles | packages.NeedSyntax | packages.NeedTypes | packages.NeedDeps | packages.NeedTypesInfo}
 	pkgs, err := packages.Load(cfg, flag.Args()...)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "load: %v\n", err)
@@ -63,8 +66,30 @@ func main() {
 			fmt.Fprintf(os.Stderr, "template parse error: %v\n", err)
 			os.Exit(1)
 		}
-		p := knife.NewPackage(pkg.Types)
-		if err := tmpl.Execute(os.Stdout, p); err != nil {
+		var data interface{}
+		if flagXPath != "" {
+			e := astquery.New(pkg.Fset, pkg.Syntax, nil)
+			ns, err := e.Select(flagXPath)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "XPath parse error: %v\n", err)
+				os.Exit(1)
+			}
+
+			nns := make([]*knife.ASTNode, len(ns))
+			for i := range ns {
+				nns[i] = knife.NewASTNode(pkg.TypesInfo, ns[i])
+			}
+
+			if len(ns) == 1 {
+				data = nns[0]
+			} else {
+				data = nns
+			}
+		} else {
+			data = knife.NewPackage(pkg.Types)
+		}
+
+		if err := tmpl.Execute(os.Stdout, data); err != nil {
 			fmt.Fprintf(os.Stderr, "template execute: %v\n", err)
 			os.Exit(1)
 		}
