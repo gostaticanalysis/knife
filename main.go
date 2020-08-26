@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"go/ast"
 	"go/token"
 	"os"
 	"strings"
@@ -69,17 +70,23 @@ func main() {
 		var data interface{}
 		if flagXPath != "" {
 			e := astquery.New(pkg.Fset, pkg.Syntax, nil)
-			ns, err := e.Select(flagXPath)
+			v, err := e.Eval(flagXPath)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "XPath parse error: %v\n", err)
 				os.Exit(1)
 			}
 
-			nns := make([]*knife.ASTNode, len(ns))
-			for i := range ns {
-				nns[i] = knife.NewASTNode(pkg.TypesInfo, ns[i])
+			switch v := v.(type) {
+			case []ast.Node:
+				ns := make([]*knife.ASTNode, len(v))
+				for i := range ns {
+					ns[i] = knife.NewASTNode(pkg.TypesInfo, v[i])
+				}
+				data = ns
+			default:
+				data = v
 			}
-			data = nns
+
 		} else {
 			data = knife.NewPackage(pkg.Types)
 		}
