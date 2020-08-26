@@ -588,3 +588,63 @@ func under(t types.Type) types.Type {
 	return t
 }
 
+func implements(t interface{}, iface interface{}) bool {
+	var (
+		_t     types.Type
+		_iface *types.Interface
+	)
+
+	switch t := t.(type) {
+	case types.Type:
+		_t = t
+	case *Type:
+		_t = t.TypesType
+	case Object:
+		_t = t.TypesObject().Type()
+	case types.Object:
+		_t = t.Type()
+	}
+
+	switch iface := iface.(type) {
+	case *types.Interface:
+		_iface = iface
+	case types.Type:
+		_iface, _ = under(iface).(*types.Interface)
+	case *Type:
+		_iface, _ = under(iface.TypesType).(*types.Interface)
+	case Object:
+		_iface, _ = under(iface.TypesObject().Type()).(*types.Interface)
+	case types.Object:
+		_iface, _ = under(iface.Type()).(*types.Interface)
+	}
+
+	return _t != nil && _iface != nil && types.Implements(_t, _iface)
+}
+
+func identical(t1, t2 interface{}) bool {
+	var _t1, _t2     types.Type
+
+	switch t1 := t1.(type) {
+	case types.Type:
+		_t1 = t1
+	case *Type:
+		_t1 = t1.TypesType
+	case Object:
+		_t1 = t1.TypesObject().Type()
+	case types.Object:
+		_t1 = t1.Type()
+	}
+
+	switch t2 := t2.(type) {
+	case types.Type:
+		_t2 = t2
+	case *Type:
+		_t2 = t2.TypesType
+	case Object:
+		_t2 = t2.TypesObject().Type()
+	case types.Object:
+		_t2 = t2.Type()
+	}
+
+	return _t1 != nil && _t2 != nil && types.Identical(_t1, _t2)
+}

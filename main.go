@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"go/ast"
 	"go/token"
+	"go/types"
 	"os"
 	"strings"
 	"text/template"
 
+	"github.com/gostaticanalysis/analysisutil"
 	"github.com/gostaticanalysis/astquery"
 	"github.com/gostaticanalysis/comment"
 	"github.com/gostaticanalysis/knife/knife"
@@ -43,6 +45,12 @@ func main() {
 		tmpl, err := knife.Template.Funcs(template.FuncMap{
 			"pos": func(v interface{}) token.Position {
 				return knife.Position(pkg.Fset, v)
+			},
+			"objectof": func(s string) knife.Object {
+				return objectOf(pkg.Types, s)
+			},
+			"typeof": func(s string) *knife.Type {
+				return typeOf(pkg.Types, s)
 			},
 			"doc": func(v interface{}) string {
 				node, ok := v.(interface{ Pos() token.Pos })
@@ -97,4 +105,46 @@ func main() {
 		}
 		fmt.Println()
 	}
+}
+
+func objectOf(typesPkg *types.Package, s string) knife.Object {
+	ss := strings.Split(s, ".")
+
+	switch len(ss) {
+	case 1:
+		obj := types.Universe.Lookup(s)
+		return knife.NewObject(obj)
+	case 2:
+		pkg, name := ss[0], ss[1]
+		obj := analysisutil.LookupFromImports(typesPkg.Imports(), pkg, name)
+		if obj != nil {
+			return knife.NewObject(obj)
+		}
+		if analysisutil.RemoveVendor(typesPkg.Name()) != analysisutil.RemoveVendor(pkg) {
+			return nil
+		}
+		return knife.NewObject(typesPkg.Scope().Lookup(name))
+	}
+	return nil
+}
+
+func typeOf(typesPkg *types.Package, s string) *knife.Type {
+	if s == "" {
+		return nil
+	}
+
+	if s[0] == '*' {
+		typ := typeOf(typesPkg, s[1:])
+		if typ == nil {
+			return nil
+		}
+		return knife.NewType(types.NewPointer(typ.TypesType))
+	}
+
+	obj := objectOf(typesPkg, s)
+	if obj == nil {
+		return nil
+	}
+
+	return knife.NewType(obj.TypesObject().Type())
 }
