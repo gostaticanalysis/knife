@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/gostaticanalysis/knife/knife"
+	"github.com/gostaticanalysis/knife/lib/knife"
 )
 
 var (

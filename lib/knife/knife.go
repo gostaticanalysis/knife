@@ -38,6 +38,7 @@ func (k *Knife) Format(w io.Writer, format string) error {
 		if err := k.formatPkg(w, format, pkg); err != nil {
 			return err
 		}
+		fmt.Println()
 	}
 	return nil
 }
