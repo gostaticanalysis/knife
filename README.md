@@ -6,7 +6,7 @@
 ## Install
 
 ```sh
-$ go get -u github.com/tenntenn/gostaticanalysis/knife
+$ go get -u github.com/gostaticanalysis/knife
 ```
 
 ## How to use
