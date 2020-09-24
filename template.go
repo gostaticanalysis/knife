@@ -26,6 +26,7 @@ func newTemplate(pkg *packages.Package, extraData map[string]interface{}) *templ
 func newFuncMap(pkg *packages.Package, extraData map[string]interface{}) template.FuncMap {
 	var cmaps comment.Maps
 	return template.FuncMap{
+		"pkg":        func() *Package { return NewPackage(pkg.Types) },
 		"br":         fmt.Sprintln,
 		"array":      ToArray,
 		"basic":      ToBasic,

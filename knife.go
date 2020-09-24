@@ -39,14 +39,14 @@ func (k *Knife) Packages() []*packages.Package {
 	return k.pkgs
 }
 
-// FormatOption is a option of Format.
-type FormatOption struct {
+// Option is a option of Execute.
+type Option struct {
 	XPath     string
 	ExtraData map[string]interface{}
 }
 
-// Format formats the pkg with the format.
-func (k *Knife) Format(w io.Writer, pkg *packages.Package, format string, opt *FormatOption) error {
+// Execute outputs the pkg with the format.
+func (k *Knife) Execute(w io.Writer, pkg *packages.Package, format string, opt *Option) error {
 	tmpl, err := newTemplate(pkg, opt.ExtraData).Parse(format)
 	if err != nil {
 		return fmt.Errorf("template parse: %w", err)
@@ -71,8 +71,8 @@ func (k *Knife) Format(w io.Writer, pkg *packages.Package, format string, opt *F
 	return nil
 }
 
-// FormatWithTemplate formats the pkg with the template.
-func (k *Knife) FormatWithTemplate(w io.Writer, pkg *packages.Package, tmplPath string, opt *FormatOption) error {
+// ExecuteWithTemplate outputs the pkg with the template.
+func (k *Knife) ExecuteWithTemplate(w io.Writer, pkg *packages.Package, tmplPath string, opt *Option) error {
 	format, err := ioutil.ReadFile(tmplPath)
 	if err != nil {
 		return fmt.Errorf("cannot read template file: %w", err)

@@ -40,7 +40,7 @@ func run(args []string) error {
 
 	var w io.Writer = os.Stdout
 
-	opt := &knife.FormatOption{
+	opt := &knife.Option{
 		XPath: flagXPath,
 	}
 
@@ -56,11 +56,11 @@ func run(args []string) error {
 	for i, pkg := range pkgs {
 		switch {
 		case flagTemplate != "":
-			if err := k.FormatWithTemplate(w, pkg, flagTemplate, opt); err != nil {
+			if err := k.ExecuteWithTemplate(w, pkg, flagTemplate, opt); err != nil {
 				return err
 			}
 		default:
-			if err := k.Format(w, pkg, flagFormat, opt); err != nil {
+			if err := k.Execute(w, pkg, flagFormat, opt); err != nil {
 				return err
 			}
 		}
