@@ -6,10 +6,23 @@
 ## Install
 
 ```sh
-$ go get -u github.com/gostaticanalysis/knife
+$ go get -u github.com/gostaticanalysis/knife/cmd/knife
 ```
 
 ## How to use
+
+### Options
+
+See [Options](./_docs/options.md)
+
+### Functions
+
+See [Functions for a template](./_docs/functions.md)
+
+### Types
+
+A package is represented as [`knife.Package`](https://pkg.go.dev/github.com/gostaticanalysis/knife/#Package).
+Most knife's types are struct and which hold data as fields because it is easy to use in a template.
 
 ### List `fmt` package's functions which name begins `Print`
 
