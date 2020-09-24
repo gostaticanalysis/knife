@@ -14,9 +14,18 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
-func NewTemplate(pkg *packages.Package, format string) (*template.Template, error) {
+// newTemplate creates new a template with funcmap.
+func newTemplate(pkg *packages.Package, extraData map[string]interface{}) *template.Template {
+	prefix := pkg.Name
+	if prefix == "" {
+		prefix = pkg.ID
+	}
+	return template.New(prefix + "_format").Funcs(newFuncMap(pkg, extraData))
+}
+
+func newFuncMap(pkg *packages.Package, extraData map[string]interface{}) template.FuncMap {
 	var cmaps comment.Maps
-	return template.New(pkg.Name + "_format").Funcs(template.FuncMap{
+	return template.FuncMap{
 		"br":         fmt.Sprintln,
 		"array":      ToArray,
 		"basic":      ToBasic,
@@ -37,34 +46,12 @@ func NewTemplate(pkg *packages.Package, format string) (*template.Template, erro
 		"implements": implements,
 		"identical":  identical,
 		"under":      under,
-		"pos": func(v interface{}) token.Position {
-			return Position(pkg.Fset, v)
-		},
-		"objectof": func(s string) Object {
-			return objectOf(pkg.Types, s)
-		},
-		"typeof": func(s string) *Type {
-			return typeOf(pkg.Types, s)
-		},
-		"doc": func(v interface{}) string {
-			node, ok := v.(interface{ Pos() token.Pos })
-			if !ok {
-				return ""
-			}
-
-			if cmaps == nil {
-				cmaps = comment.New(pkg.Fset, pkg.Syntax)
-			}
-
-			pos := node.Pos()
-			cgs := cmaps.CommentsByPosLine(pkg.Fset, pos)
-			if len(cgs) > 0 {
-				return strings.TrimSpace(cgs[len(cgs)-1].Text())
-			}
-
-			return ""
-		},
-	}).Parse(format)
+		"pos":        func(v interface{}) token.Position { return Position(pkg.Fset, v) },
+		"objectof":   func(s string) Object { return objectOf(pkg.Types, s) },
+		"typeof":     func(s string) *Type { return typeOf(pkg.Types, s) },
+		"doc":        func(v interface{}) string { return doc(pkg, cmaps, v) },
+		"data":       func(k string) interface{} { return extraData[k] },
+	}
 }
 
 func names(slice interface{}) string {
@@ -153,4 +140,23 @@ func typeOf(typesPkg *types.Package, s string) *Type {
 		return nil
 	}
 	return NewType(obj.TypesObject().Type())
+}
+
+func doc(pkg *packages.Package, cmaps comment.Maps, v interface{}) string {
+	node, ok := v.(interface{ Pos() token.Pos })
+	if !ok {
+		return ""
+	}
+
+	if cmaps == nil {
+		cmaps = comment.New(pkg.Fset, pkg.Syntax)
+	}
+
+	pos := node.Pos()
+	cgs := cmaps.CommentsByPosLine(pkg.Fset, pos)
+	if len(cgs) > 0 {
+		return strings.TrimSpace(cgs[len(cgs)-1].Text())
+	}
+
+	return ""
 }
