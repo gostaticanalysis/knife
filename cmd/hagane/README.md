@@ -11,4 +11,4 @@ $ hagane -template template.go.tmpl -o sample_mock.go -data {"type":"DB"} sample
 * `-template`: template file (data use `-f` option)
 * `-data`: extra data as JSON format
 
-See [the example](../_examples/hagane/).
+See [the example](../../_examples/hagane/).
