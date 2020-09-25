@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"strings"
 
@@ -52,17 +53,19 @@ func run(args []string) error {
 		opt.ExtraData = extraData
 	}
 
+	var tmpl interface{} = flagFormat
+	if flagTemplate != "" {
+		tmpl, err = ioutil.ReadFile(flagTemplate)
+		if err != nil {
+			return fmt.Errorf("cannot read template: %w", err)
+		}
+	}
+
 	pkgs := k.Packages()
 	for i, pkg := range pkgs {
-		switch {
-		case flagTemplate != "":
-			if err := k.ExecuteWithTemplate(w, pkg, flagTemplate, opt); err != nil {
-				return err
-			}
-		default:
-			if err := k.Execute(w, pkg, flagFormat, opt); err != nil {
-				return err
-			}
+
+		if err := k.Execute(w, pkg, tmpl, opt); err != nil {
+			return err
 		}
 
 		if i != len(pkgs)-1 {

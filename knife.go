@@ -46,8 +46,25 @@ type Option struct {
 }
 
 // Execute outputs the pkg with the format.
-func (k *Knife) Execute(w io.Writer, pkg *packages.Package, format string, opt *Option) error {
-	tmpl, err := newTemplate(pkg, opt.ExtraData).Parse(format)
+func (k *Knife) Execute(w io.Writer, pkg *packages.Package, tmpl interface{}, opt *Option) error {
+
+	var tmplStr string
+	switch tmpl := tmpl.(type) {
+	case string:
+		tmplStr = tmpl
+	case []byte:
+		tmplStr = string(tmpl)
+	case io.Reader:
+		b, err := ioutil.ReadAll(tmpl)
+		if err != nil {
+			return fmt.Errorf("cannnot read template: %w", err)
+		}
+		tmplStr = string(b)
+	default:
+		return fmt.Errorf("template must be string, []byte or io.Reader: %T", tmpl)
+	}
+
+	t, err := newTemplate(pkg, opt.ExtraData).Parse(tmplStr)
 	if err != nil {
 		return fmt.Errorf("template parse: %w", err)
 	}
@@ -64,38 +81,7 @@ func (k *Knife) Execute(w io.Writer, pkg *packages.Package, format string, opt *
 		data = NewPackage(pkg.Types)
 	}
 
-	if err := tmpl.Execute(w, data); err != nil {
-		return fmt.Errorf("template execute: %w", err)
-	}
-
-	return nil
-}
-
-// ExecuteWithTemplate outputs the pkg with the template.
-func (k *Knife) ExecuteWithTemplate(w io.Writer, pkg *packages.Package, tmplPath string, opt *Option) error {
-	format, err := ioutil.ReadFile(tmplPath)
-	if err != nil {
-		return fmt.Errorf("cannot read template file: %w", err)
-	}
-
-	tmpl, err := newTemplate(pkg, opt.ExtraData).Parse(string(format))
-	if err != nil {
-		return fmt.Errorf("template parse: %w", err)
-	}
-
-	var data interface{}
-
-	switch {
-	case opt != nil && opt.XPath != "":
-		data, err = k.evalXPath(pkg, opt.XPath)
-		if err != nil {
-			return err
-		}
-	default:
-		data = NewPackage(pkg.Types)
-	}
-
-	if err := tmpl.Execute(w, data); err != nil {
+	if err := t.Execute(w, data); err != nil {
 		return fmt.Errorf("template execute: %w", err)
 	}
 
