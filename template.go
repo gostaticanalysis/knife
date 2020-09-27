@@ -52,6 +52,7 @@ func newFuncMap(pkg *packages.Package, extraData map[string]interface{}) templat
 		"typeof":     func(s string) *Type { return typeOf(pkg.Types, s) },
 		"doc":        func(v interface{}) string { return doc(pkg, cmaps, v) },
 		"data":       func(k string) interface{} { return extraData[k] },
+		"at":         at,
 	}
 }
 
@@ -160,4 +161,12 @@ func doc(pkg *packages.Package, cmaps comment.Maps, v interface{}) string {
 	}
 
 	return ""
+}
+
+func at(v interface{}, expr string) interface{} {
+	ret, err := At(v, expr)
+	if err != nil {
+		panic(err)
+	}
+	return ret
 }
