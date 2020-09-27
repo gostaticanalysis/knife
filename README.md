@@ -17,7 +17,7 @@ See [Options](./_docs/options.md)
 
 ### Functions
 
-See [Functions for a template](./_docs/functions.md)
+See [Functions for a template](./_docs/funcs.md)
 
 ### Types
 
