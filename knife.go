@@ -64,7 +64,14 @@ func (k *Knife) Execute(w io.Writer, pkg *packages.Package, tmpl interface{}, op
 		return fmt.Errorf("template must be string, []byte or io.Reader: %T", tmpl)
 	}
 
-	t, err := newTemplate(pkg, opt.ExtraData).Parse(tmplStr)
+	td := &TempalteData{
+		Fset:      pkg.Fset,
+		Files:     pkg.Syntax,
+		TypesInfo: pkg.TypesInfo,
+		Pkg:       pkg.Types,
+		Extra:     opt.ExtraData,
+	}
+	t, err := NewTemplate(td).Parse(tmplStr)
 	if err != nil {
 		return fmt.Errorf("template parse: %w", err)
 	}
