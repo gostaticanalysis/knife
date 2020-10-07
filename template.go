@@ -3,6 +3,7 @@ package knife
 import (
 	"bytes"
 	"fmt"
+	"go/ast"
 	"go/token"
 	"go/types"
 	"reflect"
@@ -11,22 +12,26 @@ import (
 
 	"github.com/gostaticanalysis/analysisutil"
 	"github.com/gostaticanalysis/comment"
-	"golang.org/x/tools/go/packages"
 )
 
-// newTemplate creates new a template with funcmap.
-func newTemplate(pkg *packages.Package, extraData map[string]interface{}) *template.Template {
-	prefix := pkg.Name
-	if prefix == "" {
-		prefix = pkg.ID
-	}
-	return template.New(prefix + "_format").Funcs(newFuncMap(pkg, extraData))
+type TempalteData struct {
+	Fset      *token.FileSet
+	Files     []*ast.File
+	TypesInfo *types.Info
+	Pkg       *types.Package
+	Extra     map[string]interface{}
 }
 
-func newFuncMap(pkg *packages.Package, extraData map[string]interface{}) template.FuncMap {
+// NewTemplate creates new a template with funcmap.
+func NewTemplate(td *TempalteData) *template.Template {
+	prefix := td.Pkg.Name()
+	return template.New(prefix + "_format").Funcs(newFuncMap(td))
+}
+
+func newFuncMap(td *TempalteData) template.FuncMap {
 	var cmaps comment.Maps
 	return template.FuncMap{
-		"pkg":        func() *Package { return NewPackage(pkg.Types) },
+		"pkg":        func() *Package { return NewPackage(td.Pkg) },
 		"br":         fmt.Sprintln,
 		"array":      ToArray,
 		"basic":      ToBasic,
@@ -43,34 +48,34 @@ func newFuncMap(pkg *packages.Package, extraData map[string]interface{}) templat
 		"cap":        func(v interface{}) int { return reflect.ValueOf(v).Cap() },
 		"exported":   Exported,
 		"methods":    Methods,
-		"names":      names,
+		"names":      td.names,
 		"implements": implements,
 		"identical":  identical,
 		"under":      under,
-		"pos":        func(v interface{}) token.Position { return Position(pkg.Fset, v) },
-		"objectof":   func(s string) Object { return objectOf(pkg.Types, s) },
-		"typeof":     func(s string) *Type { return typeOf(pkg.Types, s) },
-		"doc":        func(v interface{}) string { return doc(pkg, cmaps, v) },
-		"data":       func(k string) interface{} { return extraData[k] },
+		"pos":        func(v interface{}) token.Position { return Position(td.Fset, v) },
+		"objectof":   func(s string) Object { return td.objectOf(s) },
+		"typeof":     func(s string) *Type { return td.typeOf(s) },
+		"doc":        func(v interface{}) string { return td.doc(cmaps, v) },
+		"data":       func(k string) interface{} { return td.Extra[k] },
 	}
 }
 
-func names(slice interface{}) string {
+func (td *TempalteData) names(slice interface{}) string {
 	vs := reflect.ValueOf(slice)
 	switch vs.Kind() {
 	case reflect.Slice, reflect.Array:
-		return nameSlice(vs)
+		return td.nameSlice(vs)
 	case reflect.Map:
-		return nameMap(vs)
+		return td.nameMap(vs)
 	}
 
 	return ""
 }
 
-func nameSlice(vs reflect.Value) string {
+func (td *TempalteData) nameSlice(vs reflect.Value) string {
 	var buf bytes.Buffer
 	for i := 0; i < vs.Len(); i++ {
-		s := name(vs.Index(i))
+		s := td.name(vs.Index(i))
 		if s != "" {
 			fmt.Fprintln(&buf, s)
 		}
@@ -78,10 +83,10 @@ func nameSlice(vs reflect.Value) string {
 	return strings.TrimRight(buf.String(), "\n")
 }
 
-func nameMap(vs reflect.Value) string {
+func (td *TempalteData) nameMap(vs reflect.Value) string {
 	var buf bytes.Buffer
 	for _, k := range vs.MapKeys() {
-		s := name(vs.MapIndex(k))
+		s := td.name(vs.MapIndex(k))
 		if s != "" {
 			fmt.Fprintln(&buf, s)
 		}
@@ -89,10 +94,10 @@ func nameMap(vs reflect.Value) string {
 	return strings.TrimRight(buf.String(), "\n")
 }
 
-func name(v reflect.Value) string {
+func (td *TempalteData) name(v reflect.Value) string {
 	switch v.Kind() {
 	case reflect.Ptr:
-		return name(v.Elem())
+		return td.name(v.Elem())
 	case reflect.Struct:
 		fv := v.FieldByName("Name")
 		if !fv.IsZero() {
@@ -102,7 +107,7 @@ func name(v reflect.Value) string {
 	return ""
 }
 
-func objectOf(typesPkg *types.Package, s string) Object {
+func (td *TempalteData) objectOf(s string) Object {
 	ss := strings.Split(s, ".")
 
 	switch len(ss) {
@@ -111,50 +116,50 @@ func objectOf(typesPkg *types.Package, s string) Object {
 		return NewObject(obj)
 	case 2:
 		pkg, name := ss[0], ss[1]
-		obj := analysisutil.LookupFromImports(typesPkg.Imports(), pkg, name)
+		obj := analysisutil.LookupFromImports(td.Pkg.Imports(), pkg, name)
 		if obj != nil {
 			return NewObject(obj)
 		}
-		if analysisutil.RemoveVendor(typesPkg.Name()) != analysisutil.RemoveVendor(pkg) {
+		if analysisutil.RemoveVendor(td.Pkg.Name()) != analysisutil.RemoveVendor(pkg) {
 			return nil
 		}
-		return NewObject(typesPkg.Scope().Lookup(name))
+		return NewObject(td.Pkg.Scope().Lookup(name))
 	}
 	return nil
 }
 
-func typeOf(typesPkg *types.Package, s string) *Type {
+func (td *TempalteData) typeOf(s string) *Type {
 	if s == "" {
 		return nil
 	}
 
 	if s[0] == '*' {
-		typ := typeOf(typesPkg, s[1:])
+		typ := td.typeOf(s[1:])
 		if typ == nil {
 			return nil
 		}
 		return NewType(types.NewPointer(typ.TypesType))
 	}
 
-	obj := objectOf(typesPkg, s)
+	obj := td.objectOf(s)
 	if obj == nil {
 		return nil
 	}
 	return NewType(obj.TypesObject().Type())
 }
 
-func doc(pkg *packages.Package, cmaps comment.Maps, v interface{}) string {
+func (td *TempalteData) doc(cmaps comment.Maps, v interface{}) string {
 	node, ok := v.(interface{ Pos() token.Pos })
 	if !ok {
 		return ""
 	}
 
 	if cmaps == nil {
-		cmaps = comment.New(pkg.Fset, pkg.Syntax)
+		cmaps = comment.New(td.Fset, td.Files)
 	}
 
 	pos := node.Pos()
-	cgs := cmaps.CommentsByPosLine(pkg.Fset, pos)
+	cgs := cmaps.CommentsByPosLine(td.Fset, pos)
 	if len(cgs) > 0 {
 		return strings.TrimSpace(cgs[len(cgs)-1].Text())
 	}
