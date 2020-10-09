@@ -46,6 +46,7 @@ func newFuncMap(td *TempalteData) template.FuncMap {
 		"struct":     ToStruct,
 		"len":        func(v interface{}) int { return reflect.ValueOf(v).Len() },
 		"cap":        func(v interface{}) int { return reflect.ValueOf(v).Cap() },
+		"last":       td.last,
 		"exported":   Exported,
 		"methods":    Methods,
 		"names":      td.names,
@@ -165,4 +166,9 @@ func (td *TempalteData) doc(cmaps comment.Maps, v interface{}) string {
 	}
 
 	return ""
+}
+
+func (td *TempalteData) last(v interface{}) interface{} {
+	_v := reflect.ValueOf(v)
+	return _v.Index(_v.Len() - 1).Interface()
 }

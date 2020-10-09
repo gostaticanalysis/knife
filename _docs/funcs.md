@@ -19,6 +19,7 @@ knife provides functions which can be use in a template.
 | `struct` | `{{(struct .).Fields}}` | convert type to [`knife.Struct`](https://pkg.go.dev/github.com/gostaticanalysis/knife/Struct)<br>see: [knife.ToStruct](https://pkg.go.dev/github.com/gostaticanalysis/knife/ToStruct) |
 | `len` | `{{len .}}` | `len(x)` calls `reflect.ValueOf(x).Len()` |
 | `cap` | `{{cap .}}` | `cap(x)` calls `reflect.ValueOf(x).Cap()` |
+| `last` | `{{last .}}` | `last(x)` returns last element of a slice, array or string |
 | `exported` | `{{exported .Types}}` | `exported` filters out unexported objects |
 | `methods` | `{{methods .Types.T}}` | `methods` returns methods of the type |
 | `names` | `{{range names .Types}}{{.}}{{end}}` | slice, array or map of `Name` field |
