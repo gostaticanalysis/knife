@@ -3,7 +3,7 @@
 hagane is a template base code generator.
 
 ```sh
-$ hagane -template template.go.tmpl -o sample_mock.go -data {"type":"DB"} sample.go
+$ hagane -template template.go.tmpl -o sample_mock.go -data '{"type":"DB"}' sample.go
 ```
 
 * `-o`: output file path (default stdout)
