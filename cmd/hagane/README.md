@@ -1,4 +1,4 @@
-# Example of hagane
+# hagane
 
 hagane is a template base code generator.
 
