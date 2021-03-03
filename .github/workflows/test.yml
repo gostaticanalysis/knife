@@ -1,0 +1,45 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  release:
+    types:
+      - published
+      - created
+      - edited
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.15.x
+
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Cache Go module and build cache
+      uses: actions/cache@v2
+      with:
+        key: go-${{ hashFiles('**/go.sum') }}
+        path: |
+          ~/go/pkg/mod
+        restore-keys: |
+          go-
+
+    - name: Test and vet
+      run: |
+        go vet ./...
+        go test -v -race ./...
