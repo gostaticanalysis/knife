@@ -6,17 +6,17 @@ knife provides functions which can be use in a template.
 | - | - | - |
 | `pkg` | `{{pkg}}` | target package |
 | `br` | `{{br}}` | new line |
-| `array` | `{{(array .).Len}}` | convert type to [`knife.Array`](https://pkg.go.dev/github.com/gostaticanalysis/knife/Array)<br>see: [knife.ToArray](https://pkg.go.dev/github.com/gostaticanalysis/knife/ToArray) |
-| `basic` | `{{(basic .).Kind}}` | convert type to [`knife.Basic`](https://pkg.go.dev/github.com/gostaticanalysis/knife/Basic)<br>see: [knife.ToBasic](https://pkg.go.dev/github.com/gostaticanalysis/knife/ToBasic) |
-| `chan` | `{{(chan .).Dir}}` | convert type to [`knife.Chan`](https://pkg.go.dev/github.com/gostaticanalysis/knife/Chan)<br>see: [knife.ToChan](https://pkg.go.dev/github.com/gostaticanalysis/knife/ToChan) |
-| `interface` | `{{(interface .).Methods}}` | convert type to [`knife.Interface`](https://pkg.go.dev/github.com/gostaticanalysis/knife/Interface)<br>see: [knife.ToInterface](https://pkg.go.dev/github.com/gostaticanalysis/knife/ToInterface) |
-| `map` | `{{(map .).Key}}` | convert type to [`knife.Map`](https://pkg.go.dev/github.com/gostaticanalysis/knife/Map)<br>see: [knife.ToMap](https://pkg.go.dev/github.com/gostaticanalysis/knife/ToMap) |
-| `named` | `{{(named .).Methods}}` | convert type to [`knife.Named`](https://pkg.go.dev/github.com/gostaticanalysis/knife/Named)<br>see: [knife.ToNamed](https://pkg.go.dev/github.com/gostaticanalysis/knife/ToNamed) |
-| `pointer` | `{{(pointer .).Elem}}` | convert type to [`knife.Pointer`](https://pkg.go.dev/github.com/gostaticanalysis/knife/Pointer)<br>see: [knife.ToPointer](https://pkg.go.dev/github.com/gostaticanalysis/knife/ToPointer) |
+| `array` | `{{(array .).Len}}` | convert type to [`knife.Array`](https://pkg.go.dev/github.com/gostaticanalysis/knife#Array)<br>see: [knife.ToArray](https://pkg.go.dev/github.com/gostaticanalysis/knife#ToArray) |
+| `basic` | `{{(basic .).Kind}}` | convert type to [`knife.Basic`](https://pkg.go.dev/github.com/gostaticanalysis/knife#Basic)<br>see: [knife.ToBasic](https://pkg.go.dev/github.com/gostaticanalysis/knife#ToBasic) |
+| `chan` | `{{(chan .).Dir}}` | convert type to [`knife.Chan`](https://pkg.go.dev/github.com/gostaticanalysis/knife#Chan)<br>see: [knife.ToChan](https://pkg.go.dev/github.com/gostaticanalysis/knife#ToChan) |
+| `interface` | `{{(interface .).Methods}}` | convert type to [`knife.Interface`](https://pkg.go.dev/github.com/gostaticanalysis/knife#Interface)<br>see: [knife.ToInterface](https://pkg.go.dev/github.com/gostaticanalysis/knife#ToInterface) |
+| `map` | `{{(map .).Key}}` | convert type to [`knife.Map`](https://pkg.go.dev/github.com/gostaticanalysis/knife#Map)<br>see: [knife.ToMap](https://pkg.go.dev/github.com/gostaticanalysis/knife#ToMap) |
+| `named` | `{{(named .).Methods}}` | convert type to [`knife.Named`](https://pkg.go.dev/github.com/gostaticanalysis/knife#Named)<br>see: [knife.ToNamed](https://pkg.go.dev/github.com/gostaticanalysis/knife#ToNamed) |
+| `pointer` | `{{(pointer .).Elem}}` | convert type to [`knife.Pointer`](https://pkg.go.dev/github.com/gostaticanalysis/knife#Pointer)<br>see: [knife.ToPointer](https://pkg.go.dev/github.com/gostaticanalysis/knife#ToPointer) |
 | `ptr` | `{{(ptr .).Elem}}` | same as `pointer` |
-| `signature` | `{{(signature .).Recv}}` | convert type to [`knife.Signature`](https://pkg.go.dev/github.com/gostaticanalysis/knife/Signature)<br>see: [knife.ToSignature](https://pkg.go.dev/github.com/gostaticanalysis/knife/ToSignature) |
-| `slice` | `{{(slice .).Elem}}` | convert type to [`knife.Slice`](https://pkg.go.dev/github.com/gostaticanalysis/knife/Slice)<br>see: [knife.ToSlice](https://pkg.go.dev/github.com/gostaticanalysis/knife/ToSlice) |
-| `struct` | `{{(struct .).Fields}}` | convert type to [`knife.Struct`](https://pkg.go.dev/github.com/gostaticanalysis/knife/Struct)<br>see: [knife.ToStruct](https://pkg.go.dev/github.com/gostaticanalysis/knife/ToStruct) |
+| `signature` | `{{(signature .).Recv}}` | convert type to [`knife.Signature`](https://pkg.go.dev/github.com/gostaticanalysis/knife#Signature)<br>see: [knife.ToSignature](https://pkg.go.dev/github.com/gostaticanalysis/knife#ToSignature) |
+| `slice` | `{{(slice .).Elem}}` | convert type to [`knife.Slice`](https://pkg.go.dev/github.com/gostaticanalysis/knife#Slice)<br>see: [knife.ToSlice](https://pkg.go.dev/github.com/gostaticanalysis/knife#ToSlice) |
+| `struct` | `{{(struct .).Fields}}` | convert type to [`knife.Struct`](https://pkg.go.dev/github.com/gostaticanalysis/knife#Struct)<br>see: [knife.ToStruct](https://pkg.go.dev/github.com/gostaticanalysis/knife#ToStruct) |
 | `len` | `{{len .}}` | `len(x)` calls `reflect.ValueOf(x).Len()` |
 | `cap` | `{{cap .}}` | `cap(x)` calls `reflect.ValueOf(x).Cap()` |
 | `last` | `{{last .}}` | `last(x)` returns last element of a slice, array or string |
