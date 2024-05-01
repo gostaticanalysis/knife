@@ -6,7 +6,7 @@
 ## Install
 
 ```sh
-$ go get -u github.com/gostaticanalysis/knife/cmd/knife
+$ go install github.com/gostaticanalysis/knife/cmd/knife@latest
 ```
 
 ## How to use
