@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"go/ast"
 	"io"
-	"io/ioutil"
 	"strings"
 
 	"github.com/gostaticanalysis/astquery"
@@ -65,7 +64,7 @@ func (k *Knife) Execute(w io.Writer, pkg *packages.Package, tmpl interface{}, op
 	case []byte:
 		tmplStr = string(tmpl)
 	case io.Reader:
-		b, err := ioutil.ReadAll(tmpl)
+		b, err := io.ReadAll(tmpl)
 		if err != nil {
 			return fmt.Errorf("cannnot read template: %w", err)
 		}

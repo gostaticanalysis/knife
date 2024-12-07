@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -63,7 +62,7 @@ func run(args []string) error {
 
 	var tmpl interface{} = flagFormat
 	if flagTemplate != "" {
-		tmpl, err = ioutil.ReadFile(flagTemplate)
+		tmpl, err = os.ReadFile(flagTemplate)
 		if err != nil {
 			return fmt.Errorf("cannot read template: %w", err)
 		}
