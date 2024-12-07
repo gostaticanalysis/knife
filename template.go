@@ -114,17 +114,19 @@ func (td *TempalteData) objectOf(s string) Object {
 	if dotPos == -1 {
 		obj := types.Universe.Lookup(s)
 		return NewObject(obj)
-	} else {
-		pkg, name := s[:dotPos], s[dotPos+1:]
-		obj := analysisutil.LookupFromImports(td.Pkg.Imports(), pkg, name)
-		if obj != nil {
-			return NewObject(obj)
-		}
-		if analysisutil.RemoveVendor(td.Pkg.Name()) != analysisutil.RemoveVendor(pkg) {
-			return nil
-		}
-		return NewObject(td.Pkg.Scope().Lookup(name))
 	}
+
+	pkg, name := s[:dotPos], s[dotPos+1:]
+	obj := analysisutil.LookupFromImports(td.Pkg.Imports(), pkg, name)
+	if obj != nil {
+		return NewObject(obj)
+	}
+
+	if analysisutil.RemoveVendor(td.Pkg.Name()) != analysisutil.RemoveVendor(pkg) {
+		return nil
+	}
+
+	return NewObject(td.Pkg.Scope().Lookup(name))
 }
 
 func (td *TempalteData) typeOf(s string) *Type {

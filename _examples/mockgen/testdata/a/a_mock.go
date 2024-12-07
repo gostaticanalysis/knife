@@ -14,4 +14,3 @@ func (m *MockDB) Get(id string) int {
 func (m *MockDB) Set(id string, v int) {
 	m.SetFunc(id, v)
 }
-

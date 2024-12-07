@@ -1,15 +1,25 @@
 package knife
 
 import (
+	_ "embed"
 	"fmt"
 	"go/ast"
 	"io"
 	"io/ioutil"
+	"strings"
 
 	"github.com/gostaticanalysis/astquery"
 	"golang.org/x/tools/go/ast/inspector"
 	"golang.org/x/tools/go/packages"
 )
+
+//go:embed version.txt
+var version string
+
+// Version returns the version of knife.
+func Version() string {
+	return strings.TrimSpace(version)
+}
 
 type Knife struct {
 	pkgs []*packages.Package

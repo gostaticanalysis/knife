@@ -7,7 +7,7 @@ type DB interface {
 	Set(id string, v int)
 }
 
-type db struct {}
+type db struct{}
 
 func (db) Get(id string) int {
 	return 0
