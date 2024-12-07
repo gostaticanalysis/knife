@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"go/format"
 	"io"
-	"io/ioutil"
 	"os"
 
 	"github.com/gostaticanalysis/knife"
@@ -57,7 +56,7 @@ func run() (rerr error) {
 
 	var tmpl interface{} = flagFormat
 	if flagTemplate != "" {
-		tmpl, err = ioutil.ReadFile(flagTemplate)
+		tmpl, err = os.ReadFile(flagTemplate)
 		if err != nil {
 			return fmt.Errorf("cannot read template: %w", err)
 		}
