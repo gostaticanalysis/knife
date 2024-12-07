@@ -12,6 +12,7 @@ import (
 )
 
 var (
+	flagVersion   bool
 	flagFormat    string
 	flagTemplate  string
 	flagExtraData string
@@ -19,6 +20,7 @@ var (
 )
 
 func init() {
+	flag.BoolVar(&flagVersion, "v", false, "print version")
 	flag.StringVar(&flagFormat, "f", "{{.}}", "output format")
 	flag.StringVar(&flagTemplate, "template", "", "template file")
 	flag.StringVar(&flagExtraData, "data", "", "extra data (key:value,key:value)")
@@ -34,6 +36,12 @@ func main() {
 }
 
 func run(args []string) error {
+
+	if flagVersion {
+		fmt.Println("knife", knife.Version())
+		return nil
+	}
+
 	k, err := knife.New(args...)
 	if err != nil {
 		return err

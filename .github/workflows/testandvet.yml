@@ -1,4 +1,4 @@
-name: Test
+name: Test and Vet
 
 on:
   push:
@@ -7,6 +7,7 @@ on:
   pull_request:
     branches:
       - main
+      - release-v2.*.*
   release:
     types:
       - published
@@ -19,19 +20,19 @@ defaults:
 
 jobs:
   test:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
 
     steps:
     - name: Install Go
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v5.1.0
       with:
-        go-version: 1.15.x
+        go-version: 1.23.3
 
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4.2.2
 
     - name: Cache Go module and build cache
-      uses: actions/cache@v2
+      uses: actions/cache@v4.1.2
       with:
         key: go-${{ hashFiles('**/go.sum') }}
         path: |
@@ -39,7 +40,13 @@ jobs:
         restore-keys: |
           go-
 
+    - name: Install tennvet
+      run: |
+        GOBIN=$(pwd)/v2 go install github.com/tenntenn/tennvet@latest
+
     - name: Test and vet
       run: |
+        cd v2
         go vet ./...
+        go vet -vettool=$(pwd)/tennvet ./...
         go test -v -race ./...
