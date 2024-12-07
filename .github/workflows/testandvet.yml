@@ -7,7 +7,6 @@ on:
   pull_request:
     branches:
       - main
-      - release-v2.*.*
   release:
     types:
       - published
@@ -42,11 +41,10 @@ jobs:
 
     - name: Install tennvet
       run: |
-        GOBIN=$(pwd)/v2 go install github.com/tenntenn/tennvet@latest
+        GOBIN=$(pwd) go install github.com/tenntenn/tennvet@latest
 
     - name: Test and vet
       run: |
-        cd v2
         go vet ./...
         go vet -vettool=$(pwd)/tennvet ./...
         go test -v -race ./...
