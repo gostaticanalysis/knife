@@ -10,6 +10,8 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/Masterminds/sprig/v3"
+
 	"github.com/gostaticanalysis/analysisutil"
 	"github.com/gostaticanalysis/comment"
 )
@@ -25,7 +27,7 @@ type TempalteData struct {
 // NewTemplate creates new a template with funcmap.
 func NewTemplate(td *TempalteData) *template.Template {
 	prefix := td.Pkg.Name()
-	return template.New(prefix + "_format").Funcs(newFuncMap(td))
+	return template.New(prefix + "_format").Funcs(newFuncMap(td)).Funcs(sprig.FuncMap())
 }
 
 func newFuncMap(td *TempalteData) template.FuncMap {
