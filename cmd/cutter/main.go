@@ -67,7 +67,7 @@ func run(ctx context.Context, args []string) error {
 		}
 	}
 
-	pkgs := c.Packages()
+	pkgs := c.KnifePackages()
 	readers := make([]io.Reader, len(pkgs))
 	var g gogroup.Group
 	for i, pkg := range pkgs {

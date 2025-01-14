@@ -44,6 +44,7 @@ func NewPackage(pkg *types.Package) *Package {
 
 	var np Package
 	cache.Store(pkg, &np)
+
 	np.TypesPackage = pkg
 	np.Name = pkg.Name()
 	np.Path = pkg.Path()

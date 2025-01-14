@@ -104,10 +104,10 @@ func NewArray(a *types.Array) *Array {
 	}
 
 	var na Array
-	cache.Store(a, &na)
 	na.TypesArray = a
 	na.Elem = NewType(a.Elem())
 	na.Len = a.Len()
+	cache.Store(a, &na)
 	return &na
 }
 
@@ -144,10 +144,10 @@ func NewSlice(s *types.Slice) *Slice {
 	}
 
 	var ns Slice
-	cache.Store(s, &ns)
 	ns.TypesSlice = s
 	ns.Elem = NewType(s.Elem())
 
+	cache.Store(s, &ns)
 	return &ns
 }
 
@@ -235,11 +235,11 @@ func NewMap(m *types.Map) *Map {
 	}
 
 	var nm Map
-	cache.Store(m, &nm)
 	nm.TypesMap = m
 	nm.Elem = NewType(m.Elem())
 	nm.Key = NewType(m.Key())
 
+	cache.Store(m, &nm)
 	return &nm
 }
 
@@ -278,10 +278,10 @@ func NewPointer(p *types.Pointer) *Pointer {
 	}
 
 	var np Pointer
-	cache.Store(p, &np)
 	np.TypesPointer = p
 	np.Elem = NewType(p.Elem())
 
+	cache.Store(p, &np)
 	return &np
 }
 
@@ -321,11 +321,11 @@ func NewChan(c *types.Chan) *Chan {
 	}
 
 	var nc Chan
-	cache.Store(c, &nc)
 	nc.TypesChan = c
 	nc.Dir = c.Dir()
 	nc.Elem = NewType(c.Elem())
 
+	cache.Store(c, &nc)
 	return &nc
 }
 
