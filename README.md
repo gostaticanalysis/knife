@@ -118,7 +118,7 @@ Println
 typels prints list of types.
 
 ```sh
-$ typels -exported -f interface io | grep Writer
+$ typels -f interface io | grep Writer
 io.ByteWriter
 io.ReadWriter
 io.WriterAt
