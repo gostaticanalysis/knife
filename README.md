@@ -102,6 +102,31 @@ Print:[a err n]
 Println:[a err n]
 ```
 
+## cutter: lightweight version of knife for type information only
+
+cutter is a lightweight version of knife.
+
+```sh
+$ cutter -f "{{range exported .Funcs}}{{.Name}}{{br}}{{end}}" fmt | grep Print
+Print
+Printf
+Println
+```
+
+## typels: print a list of types
+
+typels prints list of types.
+
+```sh
+$ typels -exported -f interface io | grep Writer
+io.ByteWriter
+io.ReadWriter
+io.WriterAt
+io.WriterTo
+io.StringWriter
+io.Writer
+```
+
 ## hagane: template base code generator
 
 hagane is a template base code generator.
