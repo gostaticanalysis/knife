@@ -1,12 +1,17 @@
 package main
 
 import (
+	"bytes"
+	"context"
 	"flag"
 	"fmt"
 	"io"
 	"os"
 
+	"github.com/newmo-oss/gogroup"
+
 	"github.com/gostaticanalysis/knife"
+	"github.com/gostaticanalysis/knife/cutter"
 )
 
 var (
@@ -21,42 +26,53 @@ func init() {
 }
 
 func main() {
-	if err := run(flag.Args()); err != nil {
+	if err := run(context.Background(), flag.Args()); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func run(args []string) error {
-	k, err := knife.New(args...)
+func run(ctx context.Context, args []string) error {
+	c, err := cutter.New(args...)
 	if err != nil {
 		return err
 	}
 
-	var w io.Writer = os.Stdout
-
-	pkgs := k.Packages()
+	pkgs := c.KnifePackages()
+	readers := make([]io.Reader, len(pkgs))
+	var g gogroup.Group
 	for i, pkg := range pkgs {
+		var buf bytes.Buffer
+		readers[i] = &buf
 
-		kpkg := knife.NewPackage(pkg.Types)
-
-		if len(pkgs) > 1 {
-			fmt.Fprintf(w, "# %s\n", kpkg.Path)
+		if len(pkg.Types) == 0 {
+			continue
 		}
 
-		for name, typ := range kpkg.Types {
-			if flagExported && !typ.Exported {
-				continue
+		g.Add(func(ctx context.Context) error {
+
+			for name, typ := range pkg.Types {
+				if flagExported && !typ.Exported {
+					continue
+				}
+
+				if typ.Exported && match(flagFilter, typ) {
+					if _, err := fmt.Fprintf(&buf, "%s.%s\n", pkg.Path, name); err != nil {
+						return err
+					}
+				}
 			}
 
-			if typ.Exported && match(flagFilter, typ) {
-				fmt.Fprintln(w, name)
-			}
-		}
+			return nil
+		})
+	}
 
-		if i != len(pkgs)-1 {
-			fmt.Fprintln(w)
-		}
+	if err := g.Run(ctx); err != nil {
+		return err
+	}
+
+	if _, err := io.Copy(os.Stdout, io.MultiReader(readers...)); err != nil {
+		return err
 	}
 
 	return nil
