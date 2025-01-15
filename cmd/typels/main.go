@@ -21,7 +21,7 @@ var (
 
 func init() {
 	flag.StringVar(&flagFilter, "f", "all", "object filter(all|interface|func|struct|chan|array|slice|map)")
-	flag.BoolVar(&flagExported, "exported", false, "filter only exported types")
+	flag.BoolVar(&flagExported, "exported", true, "filter only exported types")
 	flag.Parse()
 }
 
