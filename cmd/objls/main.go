@@ -20,8 +20,8 @@ var (
 )
 
 func init() {
-	flag.StringVar(&flagFilter, "f", "all", "object filter(all|interface|func|struct|chan|array|slice|map)")
-	flag.BoolVar(&flagExported, "exported", true, "filter only exported types")
+	flag.StringVar(&flagFilter, "f", "all", "object filter(all|const|func|var)")
+	flag.BoolVar(&flagExported, "exported", true, "filter only exported object")
 	flag.Parse()
 }
 
@@ -50,13 +50,12 @@ func run(ctx context.Context, args []string) error {
 		}
 
 		g.Add(func(ctx context.Context) error {
-
-			for name, typ := range pkg.Types {
-				if flagExported && !typ.Exported {
+			for name, obj := range pkg.Objects() {
+				if flagExported && !obj.TypesObject().Exported() {
 					continue
 				}
 
-				if typ.Exported && match(flagFilter, typ) {
+				if match(flagFilter, obj) {
 					if _, err := fmt.Fprintf(&buf, "%s.%s\n", pkg.Path, name); err != nil {
 						return err
 					}
@@ -78,23 +77,18 @@ func run(ctx context.Context, args []string) error {
 	return nil
 }
 
-func match(filter string, typ *knife.TypeName) bool {
-	switch filter {
-	case "interface":
-		return knife.ToInterface(typ) != nil
-	case "func":
-		return knife.ToSignature(typ) != nil
-	case "struct":
-		return knife.ToStruct(typ) != nil
-	case "chan":
-		return knife.ToChan(typ) != nil
-	case "array":
-		return knife.ToArray(typ) != nil
-	case "slice":
-		return knife.ToSlice(typ) != nil
-	case "map":
-		return knife.ToMap(typ) != nil
-	default:
+func match(filter string, obj knife.Object) bool {
+	if filter == "all" || filter == "" {
 		return true
 	}
+
+	switch obj.(type) {
+	case *knife.Const:
+		return filter == "const"
+	case *knife.Func:
+		return filter == "func"
+	case *knife.Var:
+		return filter == "var"
+	}
+	return true
 }

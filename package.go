@@ -3,6 +3,7 @@ package knife
 import (
 	"fmt"
 	"go/types"
+	"iter"
 	"sync"
 )
 
@@ -44,6 +45,7 @@ func NewPackage(pkg *types.Package) *Package {
 
 	var np Package
 	cache.Store(pkg, &np)
+
 	np.TypesPackage = pkg
 	np.Name = pkg.Name()
 	np.Path = pkg.Path()
@@ -77,4 +79,26 @@ func NewPackage(pkg *types.Package) *Package {
 
 	return &np
 
+}
+
+func (pkg *Package) Objects() iter.Seq2[string, Object] {
+	return func(yield func(string, Object) bool) {
+		for name, f := range pkg.Funcs {
+			if !yield(name, f) {
+				return
+			}
+		}
+
+		for name, v := range pkg.Vars {
+			if !yield(name, v) {
+				return
+			}
+		}
+
+		for name, c := range pkg.Consts {
+			if !yield(name, c) {
+				return
+			}
+		}
+	}
 }

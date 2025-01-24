@@ -104,10 +104,10 @@ func NewArray(a *types.Array) *Array {
 	}
 
 	var na Array
-	cache.Store(a, &na)
 	na.TypesArray = a
 	na.Elem = NewType(a.Elem())
 	na.Len = a.Len()
+	cache.Store(a, &na)
 	return &na
 }
 
@@ -144,10 +144,10 @@ func NewSlice(s *types.Slice) *Slice {
 	}
 
 	var ns Slice
-	cache.Store(s, &ns)
 	ns.TypesSlice = s
 	ns.Elem = NewType(s.Elem())
 
+	cache.Store(s, &ns)
 	return &ns
 }
 
@@ -235,11 +235,11 @@ func NewMap(m *types.Map) *Map {
 	}
 
 	var nm Map
-	cache.Store(m, &nm)
 	nm.TypesMap = m
 	nm.Elem = NewType(m.Elem())
 	nm.Key = NewType(m.Key())
 
+	cache.Store(m, &nm)
 	return &nm
 }
 
@@ -278,10 +278,10 @@ func NewPointer(p *types.Pointer) *Pointer {
 	}
 
 	var np Pointer
-	cache.Store(p, &np)
 	np.TypesPointer = p
 	np.Elem = NewType(p.Elem())
 
+	cache.Store(p, &np)
 	return &np
 }
 
@@ -321,11 +321,11 @@ func NewChan(c *types.Chan) *Chan {
 	}
 
 	var nc Chan
-	cache.Store(c, &nc)
 	nc.TypesChan = c
 	nc.Dir = c.Dir()
 	nc.Elem = NewType(c.Elem())
 
+	cache.Store(c, &nc)
 	return &nc
 }
 
@@ -598,10 +598,10 @@ func Methods(v interface{}) map[string]*Func {
 }
 
 func under(t types.Type) types.Type {
-	if named, _ := t.(*types.Named); named != nil {
-		return under(named.Underlying())
+	if t == nil {
+		return nil
 	}
-	return t
+	return t.Underlying()
 }
 
 func implements(t interface{}, iface interface{}) bool {
@@ -625,6 +625,11 @@ func implements(t interface{}, iface interface{}) bool {
 			return false
 		}
 		_t = t.TypesType
+	case *TypeName:
+		if t == nil || t.Type == nil {
+			return false
+		}
+		_t = t.Type.TypesType
 	case Object:
 		if t == nil {
 			return false
@@ -635,37 +640,32 @@ func implements(t interface{}, iface interface{}) bool {
 			return false
 		}
 		_t = t.Type()
+	default:
+		return false
 	}
 
 	switch iface := iface.(type) {
 	case *types.Interface:
-		if iface == nil {
-			return false
-		}
 		_iface = iface
 	case types.Type:
-		if iface == nil {
-			return false
-		}
 		_iface, _ = under(iface).(*types.Interface)
 	case *Type:
-		if iface == nil {
-			return false
-		}
-		_iface, _ = under(iface.TypesType).(*types.Interface)
+		_iface, _ = under(iface.TypesType.Underlying()).(*types.Interface)
 	case Object:
-		if iface == nil {
-			return false
-		}
-		_iface, _ = under(iface.TypesObject().Type()).(*types.Interface)
+		_iface, _ = under(iface.TypesObject().Type().Underlying()).(*types.Interface)
 	case types.Object:
-		if iface == nil {
-			return false
-		}
 		_iface, _ = under(iface.Type()).(*types.Interface)
+	case *Interface:
+		_iface = iface.TypesInterface
+	default:
+		return false
 	}
 
-	return _t != nil && _iface != nil && types.Implements(_t, _iface)
+	if _t == nil || _iface == nil {
+		return false
+	}
+
+	return types.Implements(_t, _iface) || types.Implements(types.NewPointer(_t), _iface)
 }
 
 func identical(t1, t2 interface{}) bool {
