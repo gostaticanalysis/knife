@@ -127,6 +127,20 @@ io.StringWriter
 io.Writer
 ```
 
+## objls: print a list of objects
+
+objls prints list of objects.
+
+```sh
+$ objls -f const net/http | grep Status | head -5
+net/http.StatusBadGateway
+net/http.StatusMovedPermanently
+net/http.StatusNotFound
+net/http.StatusCreated
+net/http.StatusForbidden
+```
+
+
 ## hagane: template base code generator
 
 hagane is a template base code generator.
