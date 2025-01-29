@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"fmt"
 	"go/ast"
+	"go/token"
 	"io"
 	"strings"
 
@@ -21,6 +22,7 @@ func Version() string {
 }
 
 type Knife struct {
+	fset *token.FileSet
 	pkgs []*packages.Package
 	ins  map[*packages.Package]*inspector.Inspector
 }
@@ -28,7 +30,10 @@ type Knife struct {
 func New(patterns ...string) (*Knife, error) {
 	mode := packages.NeedFiles | packages.NeedSyntax |
 		packages.NeedTypes | packages.NeedDeps | packages.NeedTypesInfo
-	cfg := &packages.Config{Mode: mode}
+	cfg := &packages.Config{
+		Fset: token.NewFileSet(),
+		Mode: mode,
+	}
 
 	pkgs, err := packages.Load(cfg, patterns...)
 	if err != nil {
@@ -40,7 +45,11 @@ func New(patterns ...string) (*Knife, error) {
 		ins[pkg] = inspector.New(pkg.Syntax)
 	}
 
-	return &Knife{pkgs: pkgs, ins: ins}, nil
+	return &Knife{
+		fset: cfg.Fset,
+		pkgs: pkgs,
+		ins:  ins,
+	}, nil
 }
 
 // Packages returns packages.
@@ -48,14 +57,23 @@ func (k *Knife) Packages() []*packages.Package {
 	return k.pkgs
 }
 
+// Position returns position of v.
+func (k *Knife) Position(v any) token.Position {
+	n, ok := v.(interface{ Pos() token.Pos })
+	if ok && k.fset != nil {
+		return k.fset.Position(n.Pos())
+	}
+	return token.Position{}
+}
+
 // Option is a option of Execute.
 type Option struct {
 	XPath     string
-	ExtraData map[string]interface{}
+	ExtraData map[string]any
 }
 
 // Execute outputs the pkg with the format.
-func (k *Knife) Execute(w io.Writer, pkg *packages.Package, tmpl interface{}, opt *Option) error {
+func (k *Knife) Execute(w io.Writer, pkg *packages.Package, tmpl any, opt *Option) error {
 
 	var tmplStr string
 	switch tmpl := tmpl.(type) {
@@ -85,7 +103,7 @@ func (k *Knife) Execute(w io.Writer, pkg *packages.Package, tmpl interface{}, op
 		return fmt.Errorf("template parse: %w", err)
 	}
 
-	var data interface{}
+	var data any
 
 	switch {
 	case opt != nil && opt.XPath != "":
@@ -104,7 +122,7 @@ func (k *Knife) Execute(w io.Writer, pkg *packages.Package, tmpl interface{}, op
 	return nil
 }
 
-func (k *Knife) evalXPath(pkg *packages.Package, xpath string) (interface{}, error) {
+func (k *Knife) evalXPath(pkg *packages.Package, xpath string) (any, error) {
 	e := astquery.New(pkg.Fset, pkg.Syntax, k.ins[pkg])
 	v, err := e.Eval(xpath)
 	if err != nil {

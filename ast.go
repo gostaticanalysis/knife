@@ -69,7 +69,7 @@ func (n *ASTNode) Uint64Val() uint64 {
 
 }
 
-func (n *ASTNode) Val() interface{} {
+func (n *ASTNode) Val() any {
 	return constant.Val(n.Value)
 }
 

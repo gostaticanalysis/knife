@@ -54,7 +54,7 @@ func run() (rerr error) {
 		return errors.New("does not find package")
 	}
 
-	var tmpl interface{} = flagFormat
+	var tmpl any = flagFormat
 	if flagTemplate != "" {
 		tmpl, err = os.ReadFile(flagTemplate)
 		if err != nil {

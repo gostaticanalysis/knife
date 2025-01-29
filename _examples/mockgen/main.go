@@ -65,7 +65,7 @@ func run() (rerr error) {
 	}
 
 	opt := &knife.Option{
-		ExtraData: map[string]interface{}{
+		ExtraData: map[string]any{
 			"type": flag.Arg(0),
 		},
 	}
