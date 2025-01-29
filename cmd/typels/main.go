@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 
 	"github.com/newmo-oss/gogroup"
 
@@ -17,11 +18,13 @@ import (
 var (
 	flagFilter   string
 	flagExported bool
+	flagPos      bool
 )
 
 func init() {
 	flag.StringVar(&flagFilter, "f", "all", "object filter(all|interface|func|struct|chan|array|slice|map)")
 	flag.BoolVar(&flagExported, "exported", true, "filter only exported types")
+	flag.BoolVar(&flagPos, "pos", false, "print position")
 	flag.Parse()
 }
 
@@ -57,8 +60,15 @@ func run(ctx context.Context, args []string) error {
 				}
 
 				if typ.Exported && match(flagFilter, typ) {
-					if _, err := fmt.Fprintf(&buf, "%s.%s\n", pkg.Path, name); err != nil {
-						return err
+					if flagPos {
+						pos := c.Position(typ)
+						if _, err := fmt.Fprintf(&buf, "%s.%s(%s:%d)\n", pkg.Path, name, filepath.Base(pos.Filename), pos.Line); err != nil {
+							return err
+						}
+					} else {
+						if _, err := fmt.Fprintf(&buf, "%s.%s\n", pkg.Path, name); err != nil {
+							return err
+						}
 					}
 				}
 			}

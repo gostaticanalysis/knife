@@ -111,7 +111,7 @@ func NewArray(a *types.Array) *Array {
 	return &na
 }
 
-func ToArray(t interface{}) *Array {
+func ToArray(t any) *Array {
 	switch t := t.(type) {
 	case *Type:
 		return t.Array()
@@ -151,7 +151,7 @@ func NewSlice(s *types.Slice) *Slice {
 	return &ns
 }
 
-func ToSlice(t interface{}) *Slice {
+func ToSlice(t any) *Slice {
 	switch t := t.(type) {
 	case *Type:
 		return t.Slice()
@@ -199,7 +199,7 @@ func NewStruct(s *types.Struct) *Struct {
 	return &ns
 }
 
-func ToStruct(t interface{}) *Struct {
+func ToStruct(t any) *Struct {
 	switch t := t.(type) {
 	case *Type:
 		return t.Struct()
@@ -243,7 +243,7 @@ func NewMap(m *types.Map) *Map {
 	return &nm
 }
 
-func ToMap(t interface{}) *Map {
+func ToMap(t any) *Map {
 	switch t := t.(type) {
 	case *Type:
 		return t.Map()
@@ -285,7 +285,7 @@ func NewPointer(p *types.Pointer) *Pointer {
 	return &np
 }
 
-func ToPointer(t interface{}) *Pointer {
+func ToPointer(t any) *Pointer {
 	switch t := t.(type) {
 	case *Type:
 		return t.Pointer()
@@ -329,7 +329,7 @@ func NewChan(c *types.Chan) *Chan {
 	return &nc
 }
 
-func ToChan(t interface{}) *Chan {
+func ToChan(t any) *Chan {
 	switch t := t.(type) {
 	case *Type:
 		return t.Chan()
@@ -376,7 +376,7 @@ func NewBasic(b *types.Basic) *Basic {
 	return nb
 }
 
-func ToBasic(t interface{}) *Basic {
+func ToBasic(t any) *Basic {
 	switch t := t.(type) {
 	case *Type:
 		return t.Basic()
@@ -444,7 +444,7 @@ func NewInterface(iface *types.Interface) *Interface {
 	return &ni
 }
 
-func ToInterface(t interface{}) *Interface {
+func ToInterface(t any) *Interface {
 	switch t := t.(type) {
 	case *Type:
 		return t.Interface()
@@ -500,7 +500,7 @@ func NewSignature(s *types.Signature) *Signature {
 	return &ns
 }
 
-func ToSignature(t interface{}) *Signature {
+func ToSignature(t any) *Signature {
 	switch t := t.(type) {
 	case *Type:
 		return t.Signature()
@@ -552,7 +552,7 @@ func NewNamed(n *types.Named) *Named {
 	return &nn
 }
 
-func ToNamed(t interface{}) *Named {
+func ToNamed(t any) *Named {
 	switch t := t.(type) {
 	case *Type:
 		return t.Named()
@@ -568,7 +568,7 @@ func (c *Named) String() string {
 	return c.TypesNamed.String()
 }
 
-func Methods(v interface{}) map[string]*Func {
+func Methods(v any) map[string]*Func {
 	methods := map[string]*Func{}
 	switch t := v.(type) {
 	case *Type:
@@ -604,7 +604,7 @@ func under(t types.Type) types.Type {
 	return t.Underlying()
 }
 
-func implements(t interface{}, iface interface{}) bool {
+func implements(t any, iface any) bool {
 	if t == nil || iface == nil {
 		return false
 	}
@@ -668,7 +668,7 @@ func implements(t interface{}, iface interface{}) bool {
 	return types.Implements(_t, _iface) || types.Implements(types.NewPointer(_t), _iface)
 }
 
-func identical(t1, t2 interface{}) bool {
+func identical(t1, t2 any) bool {
 	if t1 == nil || t2 == nil {
 		return false
 	}

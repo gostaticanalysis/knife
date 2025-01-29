@@ -60,7 +60,7 @@ func run(args []string) error {
 		opt.ExtraData = extraData
 	}
 
-	var tmpl interface{} = flagFormat
+	var tmpl any = flagFormat
 	if flagTemplate != "" {
 		tmpl, err = os.ReadFile(flagTemplate)
 		if err != nil {
@@ -83,8 +83,8 @@ func run(args []string) error {
 	return nil
 }
 
-func parseExtraData(extraData string) (map[string]interface{}, error) {
-	m := map[string]interface{}{}
+func parseExtraData(extraData string) (map[string]any, error) {
+	m := map[string]any{}
 	kvs := strings.Split(extraData, ",")
 	for i := range kvs {
 		kv := strings.Split(strings.TrimSpace(kvs[i]), ":")

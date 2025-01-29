@@ -303,11 +303,11 @@ func (c *Const) Uint64Val() uint64 {
 
 }
 
-func (c *Const) Val() interface{} {
+func (c *Const) Val() any {
 	return constant.Val(c.Value)
 }
 
-func Position(fset *token.FileSet, v interface{}) token.Position {
+func Position(fset *token.FileSet, v any) token.Position {
 	n, ok := v.(interface{ Pos() token.Pos })
 	if ok && fset != nil {
 		return fset.Position(n.Pos())
@@ -315,7 +315,7 @@ func Position(fset *token.FileSet, v interface{}) token.Position {
 	return token.Position{}
 }
 
-func Exported(list interface{}) interface{} {
+func Exported(list any) any {
 	v := reflect.ValueOf(list)
 	switch v.Kind() {
 	case reflect.Slice, reflect.Array:
@@ -326,7 +326,7 @@ func Exported(list interface{}) interface{} {
 	panic("unexpected kind")
 }
 
-func exportedSlice(v reflect.Value) interface{} {
+func exportedSlice(v reflect.Value) any {
 	result := reflect.MakeSlice(v.Type(), 0, 0)
 	for i := 0; i < v.Len(); i++ {
 		elm := v.Index(i)
@@ -337,7 +337,7 @@ func exportedSlice(v reflect.Value) interface{} {
 	return result.Interface()
 }
 
-func exportedMap(v reflect.Value) interface{} {
+func exportedMap(v reflect.Value) any {
 	result := reflect.MakeMap(v.Type())
 	for _, key := range v.MapKeys() {
 		elm := v.MapIndex(key)

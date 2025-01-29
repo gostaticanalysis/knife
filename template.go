@@ -19,7 +19,7 @@ type TempalteData struct {
 	Files     []*ast.File
 	TypesInfo *types.Info
 	Pkg       *types.Package
-	Extra     map[string]interface{}
+	Extra     map[string]any
 }
 
 // NewTemplate creates new a template with funcmap.
@@ -44,8 +44,8 @@ func newFuncMap(td *TempalteData) template.FuncMap {
 		"signature":  ToSignature,
 		"slice":      ToSlice,
 		"struct":     ToStruct,
-		"len":        func(v interface{}) int { return reflect.ValueOf(v).Len() },
-		"cap":        func(v interface{}) int { return reflect.ValueOf(v).Cap() },
+		"len":        func(v any) int { return reflect.ValueOf(v).Len() },
+		"cap":        func(v any) int { return reflect.ValueOf(v).Cap() },
 		"last":       td.last,
 		"exported":   Exported,
 		"methods":    Methods,
@@ -53,15 +53,15 @@ func newFuncMap(td *TempalteData) template.FuncMap {
 		"implements": implements,
 		"identical":  identical,
 		"under":      under,
-		"pos":        func(v interface{}) token.Position { return Position(td.Fset, v) },
+		"pos":        func(v any) token.Position { return Position(td.Fset, v) },
 		"objectof":   func(s string) Object { return td.objectOf(s) },
 		"typeof":     func(s string) *Type { return td.typeOf(s) },
-		"doc":        func(v interface{}) string { return td.doc(cmaps, v) },
-		"data":       func(k string) interface{} { return td.Extra[k] },
+		"doc":        func(v any) string { return td.doc(cmaps, v) },
+		"data":       func(k string) any { return td.Extra[k] },
 	}
 }
 
-func (td *TempalteData) names(slice interface{}) string {
+func (td *TempalteData) names(slice any) string {
 	vs := reflect.ValueOf(slice)
 	switch vs.Kind() {
 	case reflect.Slice, reflect.Array:
@@ -149,7 +149,7 @@ func (td *TempalteData) typeOf(s string) *Type {
 	return NewType(obj.TypesObject().Type())
 }
 
-func (td *TempalteData) doc(cmaps comment.Maps, v interface{}) string {
+func (td *TempalteData) doc(cmaps comment.Maps, v any) string {
 	node, ok := v.(interface{ Pos() token.Pos })
 	if !ok {
 		return ""
@@ -168,7 +168,7 @@ func (td *TempalteData) doc(cmaps comment.Maps, v interface{}) string {
 	return ""
 }
 
-func (td *TempalteData) last(v interface{}) interface{} {
+func (td *TempalteData) last(v any) any {
 	_v := reflect.ValueOf(v)
 	return _v.Index(_v.Len() - 1).Interface()
 }

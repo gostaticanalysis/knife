@@ -58,6 +58,15 @@ func (c *Cutter) Packages() []*packages.Package {
 	return c.pkgs
 }
 
+// Position returns position of v.
+func (c *Cutter) Position(v any) token.Position {
+	n, ok := v.(interface{ Pos() token.Pos })
+	if ok && c.fset != nil {
+		return c.fset.Position(n.Pos())
+	}
+	return token.Position{}
+}
+
 // KnifePackages returns knife packages.
 func (c *Cutter) KnifePackages() []*knife.Package {
 	return c.knifePkgs
