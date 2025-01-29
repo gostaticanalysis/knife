@@ -1,5 +1,11 @@
 # Changelog
 
+## [v0.3.0](https://github.com/gostaticanalysis/knife/compare/v0.2.0...v0.3.0) - 2025-01-29
+- Fix implements by @tenntenn in https://github.com/gostaticanalysis/knife/pull/22
+- Add objls by @tenntenn in https://github.com/gostaticanalysis/knife/pull/24
+- Update README by @tenntenn in https://github.com/gostaticanalysis/knife/pull/25
+- Add pos flag by @tenntenn in https://github.com/gostaticanalysis/knife/pull/26
+
 ## [v0.2.0](https://github.com/gostaticanalysis/knife/compare/v0.1.1...v0.2.0) - 2025-01-15
 - Add tagpr by @tenntenn in https://github.com/gostaticanalysis/knife/pull/13
 - Update version of go and dependencies by @tenntenn in https://github.com/gostaticanalysis/knife/pull/15
