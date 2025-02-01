@@ -10,6 +10,8 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/go-sprout/sprout"
+	"github.com/go-sprout/sprout/group/all"
 	"github.com/gostaticanalysis/analysisutil"
 	"github.com/gostaticanalysis/comment"
 )
@@ -24,8 +26,13 @@ type TempalteData struct {
 
 // NewTemplate creates new a template with funcmap.
 func NewTemplate(td *TempalteData) *template.Template {
+	sproutHandler := sprout.New()
+	sproutHandler.AddGroups(all.RegistryGroup())
+
 	prefix := td.Pkg.Name()
-	return template.New(prefix + "_format").Funcs(newFuncMap(td))
+	funcMap := newFuncMap(td)
+
+	return template.New(prefix + "_format").Funcs(funcMap).Funcs(sproutHandler.Build())
 }
 
 func newFuncMap(td *TempalteData) template.FuncMap {
