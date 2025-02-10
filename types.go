@@ -80,7 +80,7 @@ func (t *Type) Signature() *Signature {
 }
 
 func (t *Type) Named() *Named {
-	n, _ := under(t.TypesType).(*types.Named)
+	n, _ := t.TypesType.(*types.Named)
 	return NewNamed(n)
 }
 
