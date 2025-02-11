@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.3.1](https://github.com/gostaticanalysis/knife/compare/v0.3.0...v0.3.1) - 2025-02-11
+- Make Type.Named return expected Named value instead of nil by @110y in https://github.com/gostaticanalysis/knife/pull/27
+- Add implements flag  and replace f flag to kind flag by @tenntenn in https://github.com/gostaticanalysis/knife/pull/29
+
 ## [v0.3.0](https://github.com/gostaticanalysis/knife/compare/v0.2.0...v0.3.0) - 2025-01-29
 - Fix implements by @tenntenn in https://github.com/gostaticanalysis/knife/pull/22
 - Add objls by @tenntenn in https://github.com/gostaticanalysis/knife/pull/24
