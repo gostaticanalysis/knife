@@ -172,13 +172,13 @@ Println
 `typels` lists types in a package:
 
 ```sh
-typels -f interface io | grep Writer
-io.ByteWriter
-io.ReadWriter
-io.WriterAt
-io.WriterTo
-io.StringWriter
+typels -implements io.Writer -kind interface io
 io.Writer
+io.ReadWriteCloser
+io.WriteSeeker
+io.ReadWriteSeeker
+io.ReadWriter
+io.WriteCloser
 ```
 
 ### objls

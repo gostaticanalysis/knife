@@ -5,24 +5,30 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"go/types"
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/newmo-oss/gogroup"
+
+	"github.com/gostaticanalysis/analysisutil"
 
 	"github.com/gostaticanalysis/knife"
 	"github.com/gostaticanalysis/knife/cutter"
 )
 
 var (
-	flagFilter   string
-	flagExported bool
-	flagPos      bool
+	flagKind       string
+	flagImplements string
+	flagExported   bool
+	flagPos        bool
 )
 
 func init() {
-	flag.StringVar(&flagFilter, "f", "all", "object filter(all|interface|func|struct|chan|array|slice|map)")
+	flag.StringVar(&flagKind, "kind", "all", "all|interface|func|struct|chan|array|slice|map")
+	flag.StringVar(&flagImplements, "implements", "", "implements interface")
 	flag.BoolVar(&flagExported, "exported", true, "filter only exported types")
 	flag.BoolVar(&flagPos, "pos", false, "print position")
 	flag.Parse()
@@ -55,20 +61,18 @@ func run(ctx context.Context, args []string) error {
 		g.Add(func(ctx context.Context) error {
 
 			for name, typ := range pkg.Types {
-				if flagExported && !typ.Exported {
+				if !match(typ) {
 					continue
 				}
 
-				if typ.Exported && match(flagFilter, typ) {
-					if flagPos {
-						pos := c.Position(typ)
-						if _, err := fmt.Fprintf(&buf, "%s.%s(%s:%d)\n", pkg.Path, name, filepath.Base(pos.Filename), pos.Line); err != nil {
-							return err
-						}
-					} else {
-						if _, err := fmt.Fprintf(&buf, "%s.%s\n", pkg.Path, name); err != nil {
-							return err
-						}
+				if flagPos {
+					pos := c.Position(typ)
+					if _, err := fmt.Fprintf(&buf, "%s.%s(%s:%d)\n", pkg.Path, name, filepath.Base(pos.Filename), pos.Line); err != nil {
+						return err
+					}
+				} else {
+					if _, err := fmt.Fprintf(&buf, "%s.%s\n", pkg.Path, name); err != nil {
+						return err
 					}
 				}
 			}
@@ -88,8 +92,24 @@ func run(ctx context.Context, args []string) error {
 	return nil
 }
 
-func match(filter string, typ *knife.TypeName) bool {
-	switch filter {
+func match(typ *knife.TypeName) bool {
+	if flagExported && !typ.Exported {
+		return false
+	}
+
+	if !matchKind(typ) {
+		return false
+	}
+
+	if !checkImplements(typ) {
+		return false
+	}
+
+	return true
+}
+
+func matchKind(typ *knife.TypeName) bool {
+	switch flagKind {
 	case "interface":
 		return knife.ToInterface(typ) != nil
 	case "func":
@@ -107,4 +127,68 @@ func match(filter string, typ *knife.TypeName) bool {
 	default:
 		return true
 	}
+}
+
+func checkImplements(typ *knife.TypeName) bool {
+	if flagImplements == "" {
+		return false
+	}
+
+	pkg := typ.Package.TypesPackage
+	if pkg == nil {
+		return false
+	}
+
+	if implements(pkg, typ.Type.TypesType) {
+		return true
+	}
+
+	if _, isInterface := typ.Type.TypesType.Underlying().(*types.Interface); isInterface {
+		return false
+	}
+
+	return implements(pkg, types.NewPointer(typ.Type.TypesType))
+}
+
+func implements(pkg *types.Package, typ types.Type) bool {
+
+	iface, _ := typeOf(pkg, flagImplements).(*types.Interface)
+	if iface == nil {
+		return false
+	}
+
+	return types.Implements(typ, iface)
+}
+
+func typeOf(pkg *types.Package, s string) types.Type {
+	if s == "" {
+		return nil
+	}
+
+	obj := objectOf(pkg, s)
+	if obj == nil {
+		return nil
+	}
+
+	return obj.Type().Underlying()
+}
+
+func objectOf(pkg *types.Package, s string) types.Object {
+	dotPos := strings.LastIndex(s, ".")
+
+	if dotPos == -1 {
+		return types.Universe.Lookup(s)
+	}
+
+	pkgpath, name := s[:dotPos], s[dotPos+1:]
+	obj := analysisutil.LookupFromImports(pkg.Imports(), pkgpath, name)
+	if obj != nil {
+		return obj
+	}
+
+	if analysisutil.RemoveVendor(pkg.Path()) != analysisutil.RemoveVendor(pkgpath) {
+		return nil
+	}
+
+	return pkg.Scope().Lookup(name)
 }
