@@ -11,8 +11,11 @@ import (
 
 	"github.com/newmo-oss/gogroup"
 
+	mcpsdk "github.com/modelcontextprotocol/go-sdk/mcp"
+
 	"github.com/gostaticanalysis/knife"
 	"github.com/gostaticanalysis/knife/cutter"
+	"github.com/gostaticanalysis/knife/mcp"
 )
 
 var (
@@ -39,10 +42,13 @@ func main() {
 }
 
 func run(ctx context.Context, args []string) error {
-
 	if flagVersion {
 		fmt.Println("cutter", knife.Version())
 		return nil
+	}
+
+	if len(args) > 0 && args[0] == "mcp" {
+		return runMCPServer(ctx)
 	}
 
 	c, err := cutter.New(args...)
@@ -112,4 +118,9 @@ func parseExtraData(extraData string) (map[string]any, error) {
 		m[key] = value
 	}
 	return m, nil
+}
+
+func runMCPServer(ctx context.Context) error {
+	server := mcp.NewCutterServer()
+	return server.Run(ctx, mcpsdk.NewStdioTransport())
 }

@@ -1,6 +1,6 @@
 # Functions for a template
 
-knife provides functions which can be use in a template.
+knife and cutter provides functions which can be use in a template.
 
 | Function | Example | Description |
 | - | - | - |

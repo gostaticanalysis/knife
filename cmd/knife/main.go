@@ -1,13 +1,17 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"io"
 	"os"
 	"strings"
 
+	mcpsdk "github.com/modelcontextprotocol/go-sdk/mcp"
+
 	"github.com/gostaticanalysis/knife"
+	"github.com/gostaticanalysis/knife/mcp"
 )
 
 var (
@@ -28,17 +32,21 @@ func init() {
 }
 
 func main() {
-	if err := run(flag.Args()); err != nil {
+	ctx := context.Background()
+	if err := run(ctx, flag.Args()); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func run(args []string) error {
-
+func run(ctx context.Context, args []string) error {
 	if flagVersion {
 		fmt.Println("knife", knife.Version())
 		return nil
+	}
+
+	if len(args) > 0 && args[0] == "mcp" {
+		return runMCPServer(ctx)
 	}
 
 	k, err := knife.New(args...)
@@ -94,4 +102,9 @@ func parseExtraData(extraData string) (map[string]any, error) {
 		m[kv[0]] = kv[1]
 	}
 	return m, nil
+}
+
+func runMCPServer(ctx context.Context) error {
+	server := mcp.NewKnifeServer()
+	return server.Run(ctx, mcpsdk.NewStdioTransport())
 }
