@@ -20,13 +20,14 @@ Additionally, this repository offers several **separate** CLI tools that work si
    1. [Common Options](#common-options)
    2. [Functions for Templates](#functions-for-templates)
    3. [Example Commands](#example-commands)
-3. [Related Tools](#related-tools)
+3. [MCP Server](#mcp-server)
+4. [Related Tools](#related-tools)
    1. [cutter](#cutter)
    2. [typels](#typels)
    3. [objls](#objls)
    4. [hagane](#hagane)
-4. [License](#license)
-5. [Author](#author)
+5. [License](#license)
+6. [Author](#author)
 
 ---
 
@@ -150,6 +151,48 @@ Below are some common examples:
    Print:[a err n]
    Println:[a err n]
    ```
+
+---
+
+## MCP Server
+
+Both `knife` and `cutter` can run as Model Context Protocol (MCP) servers, enabling remote execution of Go static analysis operations through MCP-compatible clients like Claude Desktop.
+
+### Running as MCP Server
+
+To start knife as an MCP server:
+
+```sh
+knife mcp
+```
+
+To start cutter as an MCP server:
+
+```sh
+cutter mcp
+```
+
+### MCP Tool Parameters
+
+When using the MCP tools, you can provide the following parameters:
+
+- **`patterns`** (required): Package patterns to analyze (e.g., `["fmt", "net/http", "./..."]`)
+- **`format`** (optional): Template string for output formatting (defaults to `"{{.}}"`)
+- **`data`** (optional): Extra data as key:value pairs (e.g., `"key1:value1,key2:value2"`)
+- **`xpath`** (optional, knife only): XPath expression for AST node filtering
+
+### Example MCP Usage
+
+When connected to an MCP client, you can analyze Go packages remotely:
+
+```json
+{
+  "patterns": ["fmt"],
+  "format": "{{range exported .Types}}{{.Name}}{{br}}{{end}}"
+}
+```
+
+This enables integration with AI assistants and other tools that support the Model Context Protocol.
 
 ---
 
