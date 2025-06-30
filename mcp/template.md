@@ -220,6 +220,7 @@ The root context (`.`) is a `Package` object that provides access to:
 | `pos` | `{{pos .}}` | Get position (file:line) |
 | `doc` | `{{doc .Types.T}}` | Get documentation comment |
 | `data` | `{{data "key"}}` | Access extra data from `-data` flag |
+| `regexp` | `{{regexp "^Get" .Name}}` | Check if text matches regex pattern |
 
 ## Template Patterns
 
@@ -251,6 +252,138 @@ The root context (`.`) is a `Package` object that provides access to:
 
 ```go
 {{range .Types}}{{$t := .}}{{with struct .}}{{range .Fields}}{{$t.Name}}.{{.Name}}{{br}}{{end}}{{end}}{{end}}
+```
+
+### Filter Functions with Name Patterns
+
+```go
+{{range exported .Funcs}}{{if regexp "^Get" .Name}}{{.Name}}{{br}}{{end}}{{end}}
+```
+
+### Find Types with Specific Naming Convention
+
+```go
+{{range exported .Types}}{{if regexp "Interface$" .Name}}{{.Name}}{{br}}{{end}}{{end}}
+```
+
+### Filter Test Functions
+
+```go
+{{range .Funcs}}{{if regexp "^Test" .Name}}{{.Name}}{{br}}{{end}}{{end}}
+```
+
+### Find Error Variables
+
+```go
+{{range exported .Vars}}{{if implements .Type (typeof "error")}}{{.Name}}{{br}}{{end}}{{end}}
+```
+
+### List Interface Methods
+
+```go
+{{range exported .Types}}{{$t := .}}{{with interface .Type}}{{range .Methods}}{{$t.Name}}.{{.Name}}{{br}}{{end}}{{end}}{{end}}
+```
+
+### Find HTTP Handler Functions
+
+```go
+{{range exported .Funcs}}{{with .Signature}}{{if and (eq (len .Params) 2) (identical (index .Params 0).Type (typeof "net/http.ResponseWriter")) (identical (index .Params 1).Type (typeof "*net/http.Request"))}}{{.Recv.Name}}{{br}}{{end}}{{end}}{{end}}
+```
+
+### List Struct Fields with JSON Tags
+
+```go
+{{range exported .Types}}{{$t := .}}{{with struct .Type}}{{range .Fields}}{{if .Tag}}{{$t.Name}}.{{.Name}} `{{.Tag}}`{{br}}{{end}}{{end}}{{end}}{{end}}
+```
+
+### Find Context-Accepting Functions
+
+```go
+{{range exported .Funcs}}{{with .Signature}}{{if and (gt (len .Params) 0) (identical (index .Params 0).Type (typeof "context.Context"))}}{{.Recv.Name}}{{br}}{{end}}{{end}}{{end}}
+```
+
+### List Constants by Type
+
+```go
+{{range exported .Consts}}{{if identical .Type (typeof "string")}}{{.Name}} = {{.StringVal}}{{br}}{{end}}{{end}}
+```
+
+### Find Embedded Interfaces
+
+```go
+{{range exported .Types}}{{$t := .}}{{with interface .Type}}{{range .Embeddeds}}{{$t.Name}} embeds {{.}}{{br}}{{end}}{{end}}{{end}}
+```
+
+### List Method Receivers
+
+```go
+{{range exported .Types}}{{$t := .}}{{with named .Type}}{{range .Methods}}{{.Signature.Recv.Type}} {{.Name}}{{br}}{{end}}{{end}}{{end}}
+```
+
+### Find Generic Types
+
+```go
+{{range exported .Types}}{{with named .Type}}{{if .Object.IsAlias}}{{.Object.Name}} (alias){{br}}{{end}}{{end}}{{end}}
+```
+
+### List Variadic Functions
+
+```go
+{{range exported .Funcs}}{{with .Signature}}{{if .Variadic}}{{.Recv.Name}}{{br}}{{end}}{{end}}{{end}}
+```
+
+### Find Channel Types
+
+```go
+{{range exported .Types}}{{$t := .}}{{with chan .Type}}{{$t.Name}} chan {{.Elem}}{{br}}{{end}}{{end}}
+```
+
+### List Package Dependencies
+
+```go
+{{range .Imports}}{{.Path}}{{br}}{{end}}
+```
+
+### Find Types Implementing Multiple Interfaces
+
+```go
+{{range exported .Types}}{{if and (implements .Type (typeof "io.Reader")) (implements .Type (typeof "io.Writer"))}}{{.Name}}{{br}}{{end}}{{end}}
+```
+
+### Show Function Signatures
+
+```go
+{{range exported .Funcs}}{{.Name}}({{range $i, $p := .Signature.Params}}{{if $i}}, {{end}}{{$p.Name}} {{$p.Type}}{{end}}){{if .Signature.Results}} ({{range $i, $r := .Signature.Results}}{{if $i}}, {{end}}{{$r.Type}}{{end}}){{end}}{{br}}{{end}}
+```
+
+### Find Slice and Array Types
+
+```go
+{{range exported .Types}}{{$t := .}}{{with slice .Type}}{{$t.Name}} []{{.Elem}}{{br}}{{end}}{{with array .Type}}{{$t.Name}} [{{.Len}}]{{.Elem}}{{br}}{{end}}{{end}}
+```
+
+### List Map Types with Key-Value Info
+
+```go
+{{range exported .Types}}{{$t := .}}{{with map .Type}}{{$t.Name}} map[{{.Key}}]{{.Elem}}{{br}}{{end}}{{end}}
+```
+
+### Find Pointer Types
+
+```go
+{{range exported .Types}}{{$t := .}}{{with pointer .Type}}{{$t.Name}} *{{.Elem}}{{br}}{{end}}{{end}}
+```
+
+### Show Constructor Functions (New* pattern)
+
+```go
+{{range exported .Funcs}}{{if and (regexp "^New" .Name) (gt (len .Signature.Results) 0)}}{{.Name}} -> {{index .Signature.Results 0}.Type}}{{br}}{{end}}{{end}}
+```
+
+### Find Functions Returning Errors
+
+```go
+{{range exported .Funcs}}{{with .Signature}}{{if and (gt (len .Results) 0) (identical (index .Results -1).Type (typeof "error"))}}{{.Recv.Name}}{{br}}{{end}}{{end}}{{end}}
 ```
 
 ## Advanced Features

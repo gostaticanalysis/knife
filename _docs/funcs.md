@@ -31,3 +31,4 @@ knife and cutter provides functions which can be use in a template.
 | `typeof` | `{{typeof "error"}}` | `typeof` returns `*knife.Type` which is specified by name |
 | `doc` | `{{doc .Types.T}}` | `doc` returns corresponding document to the object |
 | `data` | `{{data "key"}}` | `data` returns extra data which given via `knife.Option` |
+| `regexp` | `{{regexp "^Get" .Name}}` | `regexp` performs regular expression matching and returns true if pattern matches text |

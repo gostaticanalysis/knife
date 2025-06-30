@@ -7,6 +7,7 @@ import (
 	"go/token"
 	"go/types"
 	"reflect"
+	"regexp"
 	"strings"
 	"text/template"
 
@@ -58,6 +59,7 @@ func newFuncMap(td *TempalteData) template.FuncMap {
 		"typeof":     func(s string) *Type { return td.typeOf(s) },
 		"doc":        func(v any) string { return td.doc(cmaps, v) },
 		"data":       func(k string) any { return td.Extra[k] },
+		"regexp":     regexpMatch,
 	}
 }
 
@@ -171,4 +173,14 @@ func (td *TempalteData) doc(cmaps comment.Maps, v any) string {
 func (td *TempalteData) last(v any) any {
 	_v := reflect.ValueOf(v)
 	return _v.Index(_v.Len() - 1).Interface()
+}
+
+// regexpMatch performs regular expression matching.
+// Usage: regexp "pattern" "text" - returns true if pattern matches text
+func regexpMatch(pattern, text string) bool {
+	matched, err := regexp.MatchString(pattern, text)
+	if err != nil {
+		return false
+	}
+	return matched
 }
