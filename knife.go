@@ -31,7 +31,7 @@ func New(opt *KnifeOption, patterns ...string) (*Knife, error) {
 	if opt == nil {
 		opt = &KnifeOption{Tests: true}
 	}
-	
+
 	mode := packages.NeedFiles | packages.NeedSyntax |
 		packages.NeedTypes | packages.NeedDeps | packages.NeedTypesInfo
 	cfg := &packages.Config{
