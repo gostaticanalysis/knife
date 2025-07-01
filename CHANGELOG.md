@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.5.1](https://github.com/gostaticanalysis/knife/compare/v0.5.0...v0.5.1) - 2025-07-01
+- Add -tests flag to control test file inclusion by @tenntenn in https://github.com/gostaticanalysis/knife/pull/35
+- Improvement mcp output by @tenntenn in https://github.com/gostaticanalysis/knife/pull/38
+- Add Makefile and link checking script by @tenntenn in https://github.com/gostaticanalysis/knife/pull/39
+
 ## [v0.5.0](https://github.com/gostaticanalysis/knife/compare/v0.4.0...v0.5.0) - 2025-07-01
 - Add regexp function by @tenntenn in https://github.com/gostaticanalysis/knife/pull/31
 - Add godoc and fix functions by @tenntenn in https://github.com/gostaticanalysis/knife/pull/33
