@@ -597,11 +597,52 @@ func Methods(v any) map[string]*Func {
 	return methods
 }
 
-func under(t types.Type) types.Type {
-	if t == nil {
+func under(v any) types.Type {
+	if v == nil {
 		return nil
 	}
-	return t.Underlying()
+
+	switch t := v.(type) {
+	case types.Type:
+		return t.Underlying()
+	case *Type:
+		if t == nil {
+			return nil
+		}
+		return t.TypesType.Underlying()
+	case Object:
+		if t == nil {
+			return nil
+		}
+		return t.TypesObject().Type().Underlying()
+	case types.Object:
+		if t == nil {
+			return nil
+		}
+		return t.Type().Underlying()
+	case *TypeName:
+		if t == nil {
+			return nil
+		}
+		return t.Type.TypesType.Underlying()
+	case *Var:
+		if t == nil {
+			return nil
+		}
+		return t.Type.TypesType.Underlying()
+	case *Const:
+		if t == nil {
+			return nil
+		}
+		return t.Type.TypesType.Underlying()
+	case *Func:
+		if t == nil {
+			return nil
+		}
+		return t.Signature.TypesSignature.Underlying()
+	default:
+		return nil
+	}
 }
 
 func implements(t any, iface any) bool {

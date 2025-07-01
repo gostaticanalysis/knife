@@ -2,12 +2,15 @@ package knife
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"go/ast"
 	"go/token"
 	"go/types"
+	"os/exec"
 	"reflect"
 	"regexp"
+	"slices"
 	"strings"
 	"text/template"
 
@@ -45,21 +48,22 @@ func newFuncMap(td *TempalteData) template.FuncMap {
 		"signature":  ToSignature,
 		"slice":      ToSlice,
 		"struct":     ToStruct,
-		"len":        func(v any) int { return reflect.ValueOf(v).Len() },
-		"cap":        func(v any) int { return reflect.ValueOf(v).Cap() },
-		"last":       td.last,
+		"len":        lenFunc,
+		"cap":        capFunc,
+		"last":       lastFunc,
 		"exported":   Exported,
 		"methods":    Methods,
 		"names":      td.names,
 		"implements": implements,
 		"identical":  identical,
-		"under":      under,
+		"under":      func(v any) *Type { return NewType(under(v)) },
 		"pos":        func(v any) token.Position { return Position(td.Fset, v) },
 		"objectof":   func(s string) Object { return td.objectOf(s) },
 		"typeof":     func(s string) *Type { return td.typeOf(s) },
 		"doc":        func(v any) string { return td.doc(cmaps, v) },
 		"data":       func(k string) any { return td.Extra[k] },
 		"regexp":     regexpMatch,
+		"godoc":      godoc,
 	}
 }
 
@@ -100,12 +104,16 @@ func (td *TempalteData) nameMap(vs reflect.Value) string {
 func (td *TempalteData) name(v reflect.Value) string {
 	switch v.Kind() {
 	case reflect.Ptr:
+		if v.IsNil() {
+			return ""
+		}
 		return td.name(v.Elem())
 	case reflect.Struct:
 		fv := v.FieldByName("Name")
-		if !fv.IsZero() {
-			return fv.String()
+		if !fv.IsValid() || fv.IsZero() {
+			return ""
 		}
+		return fv.String()
 	}
 	return ""
 }
@@ -152,6 +160,9 @@ func (td *TempalteData) typeOf(s string) *Type {
 }
 
 func (td *TempalteData) doc(cmaps comment.Maps, v any) string {
+	if v == nil {
+		return ""
+	}
 	node, ok := v.(interface{ Pos() token.Pos })
 	if !ok {
 		return ""
@@ -170,17 +181,70 @@ func (td *TempalteData) doc(cmaps comment.Maps, v any) string {
 	return ""
 }
 
-func (td *TempalteData) last(v any) any {
-	_v := reflect.ValueOf(v)
-	return _v.Index(_v.Len() - 1).Interface()
-}
-
 // regexpMatch performs regular expression matching.
 // Usage: regexp "pattern" "text" - returns true if pattern matches text
-func regexpMatch(pattern, text string) bool {
+func regexpMatch(pattern, text string) (bool, error) {
 	matched, err := regexp.MatchString(pattern, text)
 	if err != nil {
-		return false
+		return false, fmt.Errorf("regexp error: %v", err)
 	}
-	return matched
+	return matched, nil
+}
+
+// godoc executes go doc command with arguments and returns the output.
+// Usage: godoc "fmt.Println" or godoc "fmt"
+func godoc(args ...string) (string, error) {
+	if len(args) == 0 {
+		return "", fmt.Errorf("go doc: no arguments provided")
+	}
+
+	cmdArgs := slices.Concat([]string{"doc"}, args)
+	cmd := exec.Command("go", cmdArgs...)
+	output, err := cmd.Output()
+	if err != nil {
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) {
+			return "", fmt.Errorf("go doc command failed: %s", string(exitErr.Stderr))
+		}
+		return "", fmt.Errorf("go doc command failed: %v", err)
+	}
+	return strings.TrimSpace(string(output)), nil
+}
+
+func lenFunc(v any) (int, error) {
+	rv := reflect.Indirect(reflect.ValueOf(v))
+	switch rv.Kind() {
+	case reflect.Array, reflect.Chan, reflect.Map, reflect.Slice, reflect.String:
+		return rv.Len(), nil
+	default:
+		return 0, fmt.Errorf("len: invalid type %T", v)
+	}
+}
+
+func capFunc(v any) (int, error) {
+	rv := reflect.Indirect(reflect.ValueOf(v))
+	switch rv.Kind() {
+	case reflect.Array, reflect.Chan, reflect.Slice:
+		return rv.Cap(), nil
+	default:
+		return 0, fmt.Errorf("cap: invalid type %T", v)
+	}
+}
+
+func lastFunc(v any) (any, error) {
+	rv := reflect.Indirect(reflect.ValueOf(v))
+	switch rv.Kind() {
+	case reflect.Array, reflect.Slice:
+		if rv.Len() == 0 {
+			return nil, fmt.Errorf("last: empty collection")
+		}
+		return rv.Index(rv.Len() - 1).Interface(), nil
+	case reflect.String:
+		if rv.Len() == 0 {
+			return "", fmt.Errorf("last: empty string")
+		}
+		return string(rv.String()[rv.Len()-1]), nil
+	default:
+		return nil, fmt.Errorf("last: invalid type %T", v)
+	}
 }
