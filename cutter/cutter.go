@@ -24,8 +24,9 @@ type Cutter struct {
 func New(patterns ...string) (*Cutter, error) {
 	mode := packages.NeedName | packages.NeedTypes
 	cfg := &packages.Config{
-		Fset: token.NewFileSet(),
-		Mode: mode,
+		Fset:  token.NewFileSet(),
+		Mode:  mode,
+		Tests: true,
 	}
 
 	pkgs, err := packages.Load(cfg, patterns...)

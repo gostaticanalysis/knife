@@ -31,8 +31,9 @@ func New(patterns ...string) (*Knife, error) {
 	mode := packages.NeedFiles | packages.NeedSyntax |
 		packages.NeedTypes | packages.NeedDeps | packages.NeedTypesInfo
 	cfg := &packages.Config{
-		Fset: token.NewFileSet(),
-		Mode: mode,
+		Fset:  token.NewFileSet(),
+		Mode:  mode,
+		Tests: true,
 	}
 
 	pkgs, err := packages.Load(cfg, patterns...)
