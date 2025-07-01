@@ -42,7 +42,8 @@ func main() {
 }
 
 func run(ctx context.Context, args []string) error {
-	c, err := cutter.New(args...)
+	cutterOpt := &cutter.CutterOption{Tests: true}
+	c, err := cutter.New(cutterOpt, args...)
 	if err != nil {
 		return err
 	}

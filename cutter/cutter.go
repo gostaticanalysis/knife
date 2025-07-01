@@ -13,6 +13,11 @@ import (
 	"github.com/gostaticanalysis/knife"
 )
 
+// CutterOption is an option for New.
+type CutterOption struct {
+	Tests bool
+}
+
 // Cutter is a lightweight version of Knife which is resterected for type information.
 type Cutter struct {
 	fset      *token.FileSet
@@ -21,11 +26,15 @@ type Cutter struct {
 }
 
 // New creates a [Cutter].
-func New(patterns ...string) (*Cutter, error) {
+func New(opt *CutterOption, patterns ...string) (*Cutter, error) {
+	if opt == nil {
+		opt = &CutterOption{Tests: true}
+	}
 	mode := packages.NeedName | packages.NeedTypes
 	cfg := &packages.Config{
-		Fset: token.NewFileSet(),
-		Mode: mode,
+		Fset:  token.NewFileSet(),
+		Mode:  mode,
+		Tests: opt.Tests,
 	}
 
 	pkgs, err := packages.Load(cfg, patterns...)
