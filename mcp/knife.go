@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
@@ -21,9 +22,11 @@ type KnifeInput struct {
 }
 
 // KnifeOutput represents the output from the knife MCP tool.
-// It contains the formatted analysis results as a string.
+// It contains the formatted analysis results as structured JSON.
 type KnifeOutput struct {
-	Result string `json:"result"` // Formatted analysis results
+	Success bool            `json:"success"`         // Whether the operation succeeded
+	Results []PackageResult `json:"results"`         // Analysis results per package
+	Error   string          `json:"error,omitempty"` // Error message if any
 }
 
 // newKnifeTool creates the knife MCP tool.
@@ -65,7 +68,14 @@ func knifeHandler(ctx context.Context, ss *mcp.ServerSession, params *mcp.CallTo
 	if input.Data != "" {
 		extraData, err := parseExtraData(input.Data)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse data: %w", err)
+			return &mcp.CallToolResultFor[KnifeOutput]{
+				Content: []mcp.Content{&mcp.TextContent{
+					Text: mustMarshalJSON(KnifeOutput{
+						Success: false,
+						Error:   fmt.Sprintf("failed to parse data: %q", err.Error()),
+					}),
+				}},
+			}, nil
 		}
 		opt.ExtraData = extraData
 	}
@@ -77,21 +87,38 @@ func knifeHandler(ctx context.Context, ss *mcp.ServerSession, params *mcp.CallTo
 	}
 
 	// Execute knife for each package
-	var buf bytes.Buffer
 	pkgs := k.Packages()
-	for i, pkg := range pkgs {
+	results := make([]PackageResult, 0, len(pkgs))
+
+	for _, pkg := range pkgs {
+		var buf bytes.Buffer
 		if err := k.Execute(&buf, pkg, format, opt); err != nil {
-			return nil, fmt.Errorf("failed to execute knife for package %s: %w", pkg.PkgPath, err)
+			return &mcp.CallToolResultFor[KnifeOutput]{
+				Content: []mcp.Content{&mcp.TextContent{
+					Text: mustMarshalJSON(KnifeOutput{
+						Success: false,
+						Error:   fmt.Sprintf("failed to execute knife for package %s: %q", pkg.PkgPath, err.Error()),
+					}),
+				}},
+			}, nil
 		}
 
-		if i != len(pkgs)-1 {
-			fmt.Fprintln(&buf)
-		}
+		content := buf.String()
+
+		results = append(results, PackageResult{
+			PackageName: pkg.PkgPath,
+			Content:     content,
+		})
+	}
+
+	output := KnifeOutput{
+		Success: true,
+		Results: results,
 	}
 
 	return &mcp.CallToolResultFor[KnifeOutput]{
 		Content: []mcp.Content{&mcp.TextContent{
-			Text: buf.String(),
+			Text: mustMarshalJSON(output),
 		}},
 	}, nil
 }
