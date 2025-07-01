@@ -221,6 +221,73 @@ The root context (`.`) is a `Package` object that provides access to:
 | `doc` | `{{doc .Types.T}}` | Get documentation comment |
 | `data` | `{{data "key"}}` | Access extra data from `-data` flag |
 | `regexp` | `{{regexp "^Get" .Name}}` | Check if text matches regex pattern |
+| `godoc` | `{{godoc "fmt.Println"}}` | Execute go doc command and return output for the specified symbol or package |
+
+### Documentation Functions
+
+#### `godoc` Function
+
+The `godoc` function executes the `go doc` command and returns the documentation for the specified package, type, function, or variable.
+
+**Syntax:**
+```go
+{{godoc "package"}}           // Package documentation
+{{godoc "package.Symbol"}}    // Symbol documentation
+{{godoc "package.Type.Method"}} // Method documentation
+{{godoc "-src" "package.Symbol"}} // Show source code instead of documentation
+```
+
+**Examples:**
+
+**Package Documentation:**
+```go
+{{godoc "fmt"}}               // Documentation for fmt package
+{{godoc "net/http"}}          // Documentation for net/http package
+{{godoc .Path}}               // Documentation for current package
+```
+
+**Function Documentation:**
+```go
+{{godoc "fmt.Printf"}}        // Documentation for fmt.Printf
+{{godoc "os.Open"}}           // Documentation for os.Open
+{{godoc "-src" "fmt.Printf"}} // Source code for fmt.Printf
+{{godoc "-src" "os.Open"}}    // Source code for os.Open
+```
+
+**Type Documentation:**
+```go
+{{godoc "http.Server"}}       // Documentation for http.Server type
+{{godoc "io.Reader"}}         // Documentation for io.Reader interface
+{{godoc "-src" "http.Server"}} // Source code for http.Server type
+{{godoc "-src" "io.Reader"}}  // Source code for io.Reader interface
+```
+
+**Method Documentation:**
+```go
+{{godoc "http.Server.ListenAndServe"}}     // Documentation for Server.ListenAndServe method
+{{godoc "-src" "http.Server.ListenAndServe"}} // Source code for Server.ListenAndServe method
+```
+
+**Dynamic Symbol Documentation:**
+```go
+{{range .Types}}{{godoc (printf "%s.%s" .Package.Path .Name)}}{{end}}
+{{range .Funcs}}{{godoc (printf "%s.%s" .Package.Path .Name)}}{{end}}
+```
+
+**Using go doc Flags:**
+```go
+{{godoc "-src" "fmt.Printf"}}     // Show source code
+{{godoc "-short" "fmt"}}          // Show package summary only
+{{godoc "-u" "fmt"}}              // Show unexported symbols
+{{godoc "-c" "fmt.Printf"}}       // Show examples
+{{godoc "-all" "fmt"}}            // Show all symbols and methods
+```
+
+**Error Handling:**
+If the `godoc` command fails or the symbol is not found, an empty string is returned.
+
+**Performance Note:**
+The `godoc` function executes external commands, so it may be slower than other template functions. Use it judiciously in loops.
 
 ## Template Patterns
 
@@ -384,6 +451,61 @@ The root context (`.`) is a `Package` object that provides access to:
 
 ```go
 {{range exported .Funcs}}{{with .Signature}}{{if and (gt (len .Results) 0) (identical (index .Results -1).Type (typeof "error"))}}{{.Recv.Name}}{{br}}{{end}}{{end}}{{end}}
+```
+
+### Get Documentation for Types and Functions
+
+```go
+{{range exported .Types}}{{.Name}}: {{godoc .Name}}{{br}}{{end}}
+```
+
+### Show Package Documentation
+
+```go
+Package {{.Name}}: {{godoc .Path}}
+```
+
+### Get Function Signatures with Documentation
+
+```go
+{{range exported .Funcs}}{{.Name}}: {{godoc (printf "%s.%s" .Package.Path .Name)}}{{br}}{{end}}
+```
+
+### Get Full Documentation for Specific Function
+
+```go
+{{with (index .Funcs "FunctionName")}}{{godoc (printf "%s.%s" .Package.Path .Name)}}{{end}}
+```
+
+### Show Type Documentation with Methods
+
+```go
+{{range exported .Types}}{{.Name}}:
+{{godoc (printf "%s.%s" .Package.Path .Name)}}
+{{with named .Type}}{{range .Methods}}  {{.Name}}: {{godoc (printf "%s.%s.%s" .Package.Path .Signature.Recv.Type .Name)}}{{br}}{{end}}{{end}}
+{{br}}{{end}}
+```
+
+### Get Standard Library Documentation
+
+```go
+{{godoc "fmt"}}  // Package documentation
+{{godoc "fmt.Printf"}}  // Function documentation
+{{godoc "io.Reader"}}  // Interface documentation
+```
+
+### Documentation for Current Package Elements
+
+```go
+{{range exported .Types}}
+// Type: {{.Name}}
+{{godoc (printf "%s.%s" .Package.Path .Name)}}
+{{br}}{{end}}
+
+{{range exported .Funcs}}
+// Function: {{.Name}}
+{{godoc (printf "%s.%s" .Package.Path .Name)}}
+{{br}}{{end}}
 ```
 
 ## Advanced Features
