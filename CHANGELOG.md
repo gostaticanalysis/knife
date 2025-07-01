@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.5.0](https://github.com/gostaticanalysis/knife/compare/v0.4.0...v0.5.0) - 2025-07-01
+- Add regexp function by @tenntenn in https://github.com/gostaticanalysis/knife/pull/31
+- Add godoc and fix functions by @tenntenn in https://github.com/gostaticanalysis/knife/pull/33
+
 ## [v0.4.0](https://github.com/gostaticanalysis/knife/compare/v0.3.0...v0.4.0) - 2025-06-26
 - Make Type.Named return expected Named value instead of nil by @110y in https://github.com/gostaticanalysis/knife/pull/27
 - Add implements flag  and replace f flag to kind flag by @tenntenn in https://github.com/gostaticanalysis/knife/pull/29
