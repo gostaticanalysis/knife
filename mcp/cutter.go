@@ -3,6 +3,7 @@ package mcp
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
@@ -20,9 +21,17 @@ type CutterInput struct {
 }
 
 // CutterOutput represents the output from the cutter MCP tool.
-// It contains the formatted analysis results as a string.
+// It contains the formatted analysis results as structured JSON.
 type CutterOutput struct {
-	Result string `json:"result"` // Formatted analysis results
+	Success bool            `json:"success"`         // Whether the operation succeeded
+	Results []PackageResult `json:"results"`         // Analysis results per package
+	Error   string          `json:"error,omitempty"` // Error message if any
+}
+
+// PackageResult represents the analysis result for a single package.
+type PackageResult struct {
+	PackageName string `json:"package_name"` // Name of the analyzed package
+	Content     string `json:"content"`      // Formatted template output
 }
 
 // newCutterTool creates the cutter MCP tool.
@@ -57,7 +66,14 @@ func cutterHandler(ctx context.Context, ss *mcp.ServerSession, params *mcp.CallT
 	// Parse extra data if provided
 	extraData, err := parseExtraData(input.Data)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse data: %w", err)
+		return &mcp.CallToolResultFor[CutterOutput]{
+			Content: []mcp.Content{&mcp.TextContent{
+				Text: mustMarshalJSON(CutterOutput{
+					Success: false,
+					Error:   fmt.Sprintf("failed to parse data: %q", err.Error()),
+				}),
+			}},
+		}, nil
 	}
 
 	// Use default format if not provided
@@ -67,22 +83,49 @@ func cutterHandler(ctx context.Context, ss *mcp.ServerSession, params *mcp.CallT
 	}
 
 	// Execute cutter for each package
-	var buf bytes.Buffer
 	pkgs := c.KnifePackages()
-	for i, pkg := range pkgs {
+	results := make([]PackageResult, 0, len(pkgs))
+
+	for _, pkg := range pkgs {
+		var buf bytes.Buffer
 		opt := &cutter.Option{ExtraData: extraData}
 		if err := c.Execute(&buf, pkg, format, opt); err != nil {
-			return nil, fmt.Errorf("failed to execute cutter for package %s: %w", pkg.Path, err)
+			return &mcp.CallToolResultFor[CutterOutput]{
+				Content: []mcp.Content{&mcp.TextContent{
+					Text: mustMarshalJSON(CutterOutput{
+						Success: false,
+						Error:   fmt.Sprintf("failed to execute cutter for package %s: %q", pkg.Path, err.Error()),
+					}),
+				}},
+			}, nil
 		}
 
-		if i != len(pkgs)-1 {
-			fmt.Fprintln(&buf)
-		}
+		content := buf.String()
+
+		results = append(results, PackageResult{
+			PackageName: pkg.Path,
+			Content:     content,
+		})
+	}
+
+	output := CutterOutput{
+		Success: true,
+		Results: results,
 	}
 
 	return &mcp.CallToolResultFor[CutterOutput]{
 		Content: []mcp.Content{&mcp.TextContent{
-			Text: buf.String(),
+			Text: mustMarshalJSON(output),
 		}},
 	}, nil
+}
+
+// mustMarshalJSON marshals v to JSON, panicking on error (should never happen with our types)
+func mustMarshalJSON(v any) string {
+	b, err := json.MarshalIndent(v, "", "  ")
+	if err != nil {
+		// This should never happen with our defined types
+		return fmt.Sprintf(`{"success": false, "error": "JSON marshal error: %q"}`, err.Error())
+	}
+	return string(b)
 }
