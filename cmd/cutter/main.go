@@ -23,6 +23,7 @@ var (
 	flagFormat    string
 	flagTemplate  string
 	flagExtraData string
+	flagTests     bool
 )
 
 func init() {
@@ -30,6 +31,7 @@ func init() {
 	flag.StringVar(&flagFormat, "f", "{{.}}", "output format")
 	flag.StringVar(&flagTemplate, "template", "", "template file")
 	flag.StringVar(&flagExtraData, "data", "", "extra data (key:value,key:value)")
+	flag.BoolVar(&flagTests, "tests", true, "include test files")
 	flag.Parse()
 }
 
@@ -51,7 +53,10 @@ func run(ctx context.Context, args []string) error {
 		return runMCPServer(ctx)
 	}
 
-	c, err := cutter.New(args...)
+	cutterOpt := &cutter.CutterOption{
+		Tests: flagTests,
+	}
+	c, err := cutter.New(cutterOpt, args...)
 	if err != nil {
 		return err
 	}

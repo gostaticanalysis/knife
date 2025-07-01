@@ -27,13 +27,17 @@ type Knife struct {
 	ins  map[*packages.Package]*inspector.Inspector
 }
 
-func New(patterns ...string) (*Knife, error) {
+func New(opt *KnifeOption, patterns ...string) (*Knife, error) {
+	if opt == nil {
+		opt = &KnifeOption{Tests: true}
+	}
+	
 	mode := packages.NeedFiles | packages.NeedSyntax |
 		packages.NeedTypes | packages.NeedDeps | packages.NeedTypesInfo
 	cfg := &packages.Config{
 		Fset:  token.NewFileSet(),
 		Mode:  mode,
-		Tests: true,
+		Tests: opt.Tests,
 	}
 
 	pkgs, err := packages.Load(cfg, patterns...)
@@ -67,14 +71,19 @@ func (k *Knife) Position(v any) token.Position {
 	return token.Position{}
 }
 
-// Option is a option of Execute.
-type Option struct {
+// KnifeOption is an option for New.
+type KnifeOption struct {
+	Tests bool
+}
+
+// ExecuteOption is an option for Execute.
+type ExecuteOption struct {
 	XPath     string
 	ExtraData map[string]any
 }
 
 // Execute outputs the pkg with the format.
-func (k *Knife) Execute(w io.Writer, pkg *packages.Package, tmpl any, opt *Option) error {
+func (k *Knife) Execute(w io.Writer, pkg *packages.Package, tmpl any, opt *ExecuteOption) error {
 
 	var tmplStr string
 	switch tmpl := tmpl.(type) {

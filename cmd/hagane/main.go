@@ -36,12 +36,13 @@ func main() {
 }
 
 func run() (rerr error) {
-	k, err := knife.New(flag.Args()[1:]...)
+	knifeOpt := &knife.KnifeOption{Tests: true}
+	k, err := knife.New(knifeOpt, flag.Args()[1:]...)
 	if err != nil {
 		return fmt.Errorf("cannot create knife: %w", err)
 	}
 
-	var opt knife.Option
+	var opt knife.ExecuteOption
 	if flagExtraData != "" {
 		err := json.Unmarshal([]byte(flagExtraData), &opt.ExtraData)
 		if err != nil {

@@ -50,13 +50,14 @@ func knifeHandler(ctx context.Context, ss *mcp.ServerSession, params *mcp.CallTo
 	}
 
 	// Create knife instance
-	k, err := knife.New(input.Patterns...)
+	knifeOpt := &knife.KnifeOption{Tests: true}
+	k, err := knife.New(knifeOpt, input.Patterns...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create knife: %w", err)
 	}
 
 	// Set up options
-	opt := &knife.Option{
+	opt := &knife.ExecuteOption{
 		XPath: input.XPath,
 	}
 

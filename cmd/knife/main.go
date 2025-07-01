@@ -20,6 +20,7 @@ var (
 	flagTemplate  string
 	flagExtraData string
 	flagXPath     string
+	flagTests     bool
 )
 
 func init() {
@@ -28,6 +29,7 @@ func init() {
 	flag.StringVar(&flagTemplate, "template", "", "template file")
 	flag.StringVar(&flagExtraData, "data", "", "extra data (key:value,key:value)")
 	flag.StringVar(&flagXPath, "xpath", "", "A XPath expression for an AST node")
+	flag.BoolVar(&flagTests, "tests", true, "include test files")
 	flag.Parse()
 }
 
@@ -49,14 +51,17 @@ func run(ctx context.Context, args []string) error {
 		return runMCPServer(ctx)
 	}
 
-	k, err := knife.New(args...)
+	knifeOpt := &knife.KnifeOption{
+		Tests: flagTests,
+	}
+	k, err := knife.New(knifeOpt, args...)
 	if err != nil {
 		return err
 	}
 
 	var w io.Writer = os.Stdout
 
-	opt := &knife.Option{
+	opt := &knife.ExecuteOption{
 		XPath: flagXPath,
 	}
 

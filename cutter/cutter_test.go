@@ -7,7 +7,8 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	c, err := cutter.New("fmt")
+	cutterOpt := &cutter.CutterOption{Tests: true}
+	c, err := cutter.New(cutterOpt, "fmt")
 	if err != nil {
 		t.Fatal("unexpected error:", err)
 	}

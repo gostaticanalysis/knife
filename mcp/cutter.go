@@ -48,7 +48,8 @@ func cutterHandler(ctx context.Context, ss *mcp.ServerSession, params *mcp.CallT
 	}
 
 	// Create cutter instance
-	c, err := cutter.New(input.Patterns...)
+	cutterOpt := &cutter.CutterOption{Tests: true}
+	c, err := cutter.New(cutterOpt, input.Patterns...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create cutter: %w", err)
 	}
